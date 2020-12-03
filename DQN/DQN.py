@@ -33,7 +33,7 @@ class DQNAgent:
         # Replay memory and size
         self.memory = deque(maxlen=2000)
 
-        self.gamma = 0.97
+        self.gamma = 0.95
 
         ### DOUBLE Q-LEARNING PARAMETERS ###
         self.target_update_method = 0  # 0 for Polyak update; 1 for updating after 'update_freq' memory replays
@@ -52,7 +52,7 @@ class DQNAgent:
         self.do_evaluate = True
         self.show_progressbar = False
 
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
 
         self.timeout = 250  # Maximum steps in one episode (CartPole is limited to 200 by itself)
 
@@ -155,6 +155,7 @@ class DQNAgent:
 
 
 def main():
+    print(agent.name)
     rewards = []
     for e in range(n_episodes):
         current_reward = 0
@@ -199,7 +200,7 @@ def main():
         plt.title(f'Average Rewards in {environment} on {n_episodes} episodes')
         # Plot rewards
         plt.plot(rewards)
-        dir_name = 'graphs'
+        dir_name = 'graphs/'
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         plt.savefig(dir_name + agent.name + '.png')
@@ -227,7 +228,8 @@ def test_agent(name):
 
 agent = DQNAgent(state_size, acion_size)
 if __name__ == '__main__':
-    main()
-    #test_agent('model_output/CartPole-v0/g:0.95, lr:0.001, dc:0.995, uf:1/weights_0450.hdf5')
+    #main() #uncomment to train a model
+    test_agent('model_output/CartPole-v0/g:0.95, lr:0.001, dc:0.995, dq:0/weights_0150.hdf5')
+
 
 
