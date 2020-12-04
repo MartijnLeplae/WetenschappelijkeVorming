@@ -8,7 +8,7 @@ from tensorflow import keras
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
 environment = 'CartPole-v0'
 env = gym.make(environment)
