@@ -1,4 +1,5 @@
 import gym
+import envs
 import random
 import numpy as np
 import os
@@ -10,14 +11,14 @@ from tqdm import tqdm
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
-environment = 'CartPole-v0'
+environment = "CookieDomain-v0"
 env = gym.make(environment)
 
 
-state_size = env.observation_space.shape[0]
+state_size = env.observation_space.n   #shape[0]
 acion_size = env.action_space.n
 
-batch_size = 32
+batch_size = 64
 n_episodes = 350
 
 
@@ -49,7 +50,7 @@ class DQNAgent:
 
         # Parameters for model evaluation
         self.epsilon_greedy = 0.05  # Use sometimes random actions in stead of the model output
-        self.do_evaluate = True
+        self.do_evaluate = False
         self.show_progressbar = False
 
         self.learning_rate = 0.01
@@ -174,7 +175,7 @@ def main():
 
             # What to do after each episode: evaluate agent if needed and print progress
             if done:
-                if agent.do_evaluate:  # or e % 100 == 0: uncomment to evaluate agent every 100 episodes
+                if agent.do_evaluate or e % 100 == 0: # uncomment to evaluate agent every 100 episodes
                     avv_reward = agent.evaluate()
                     rewards.append(avv_reward)
                     print(f"episode {e}/{n_episodes}, score: {time}, average reward: {avv_reward}, e: {agent.epsilon:.2}")
@@ -228,8 +229,8 @@ def test_agent(name):
 
 agent = DQNAgent(state_size, acion_size)
 if __name__ == '__main__':
-    #main() #uncomment to train a model
-    test_agent('model_output/CartPole-v0/g:0.95, lr:0.001, dc:0.995, dq:0/weights_0150.hdf5')
+    main() #uncomment to train a model
+    #test_agent('model_output/CartPole-v0/g:0.95, lr:0.001, dc:0.995, dq:0/weights_0150.hdf5')
 
 
 
