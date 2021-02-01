@@ -58,17 +58,20 @@ class DQNAgent:
         self.timeout = 250  # Maximum steps in one episode (CartPole is limited to 200 by itself)
 
         # Build model and target model
+        self.internal_layers = [20,20]
         self.model = self._build_model()
         self.model_t = self._build_model()
         self.model_t.set_weights(self.model.get_weights())
 
-        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}'
+        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}, net:('
 
     # Design of the deep-q neural network
     def _build_model(self):
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(20, input_dim=self.state_size, activation='relu'))
-        model.add(keras.layers.Dense(20, activation='relu'))
+        model.add(keras.layers.Dense(self.internal_layers[0], input_dim=self.state_size, activation='relu'))
+        for i in range(1, len(self.internal_layers)):
+            model.add(keras.layers.Dense(self.internal_layers[i], activation='relu'))
+
         model.add(keras.layers.Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self.learning_rate))
         return model
@@ -175,7 +178,7 @@ def main():
 
             # What to do after each episode: evaluate agent if needed and print progress
             if done:
-                if agent.do_evaluate or e % 100 == 0: # uncomment to evaluate agent every 100 episodes
+                if agent.do_evaluate or e % 100 == 0:  # uncomment to evaluate agent every 100 episodes
                     avv_reward = agent.evaluate()
                     rewards.append(avv_reward)
                     print(f"episode {e}/{n_episodes}, score: {time}, average reward: {avv_reward}, e: {agent.epsilon:.2}")

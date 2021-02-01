@@ -3,6 +3,19 @@ from gym import spaces
 import random as rnd
 import numpy as np
 
+"""
+Idee: 3 kamers en 1 gang. (Kamers en gang hebben grootte 1 om de omgeving wat te vereenvoudigen) 
+In één kamer staat een knop (willekeurig geplaatst aan het begin van een episode)
+Als de agent hiermee interageert (op drukt), verschijnt er in één van de andere kamers een koekje.
+Wanneer de agent met het koekje interageert (opeten), krijgt hij 1 rewardpunt.
+1 episode bestaat uit 100 Actions waarin de agent zo veel mogelijk koekjes probeert te eten.
+
+De agent kan enkel dingen observeren in de kamer waar hij is.
+
+(Voor een volgende versie kunnen we evt de kamers groter maken. 
+Kan de agent dan alles in één kamer zien of alleen wat op zijn positie staat?)
+"""
+
 class CookieDomain(gym.Env):
     def __init__(self):
         '''
@@ -28,7 +41,7 @@ class CookieDomain(gym.Env):
         self.cookie = None
 
         self.n_steps = 0
-        self.step_limit = 100
+        self.step_limit = 100 # nb of actions in one episode
 
         self.action_space = spaces.Discrete(5) # Left, Right, Up, Down, Interact(=> push button, eat cookie if possible)
         self.observation_space = spaces.Discrete(2) # (Room, interactable object)
