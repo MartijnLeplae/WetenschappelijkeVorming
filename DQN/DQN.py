@@ -4,25 +4,31 @@ import random
 import numpy as np
 import os
 
-from collections import deque
-from tensorflow import keras
+from collections import deque # List which allows to add items in the front and to the end
+from tensorflow import keras  # To crate neural network to approximate optimal policy
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
-environment = "CookieDomain-v0"
+# PARAMETERS 
+
+#environment = "CookieDomain-v0" # Name of the environment we'll be training in 
+environment = "CartPole-v0" # Name of the environment we'll be training in 
 env = gym.make(environment)
 
 
-state_size = env.observation_space.n   #shape[0]
+#state_size = env.observation_space.n   #shape[0]
+state_size = env.observation_space.shape[0]   #shape[0]
 acion_size = env.action_space.n
 
-batch_size = 64
-n_episodes = 350
+batch_size = 64  # Should be a power of 2
+n_episodes = 350 # Number of games we want to play
 
 
 output_dir = f'model_output/{environment}/'
+
+# Create output directory if it doesn't already exist 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -32,9 +38,11 @@ class DQNAgent:
         self.action_size = action_size
 
         # Replay memory and size
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=2000) # When deque length exceeds 2000, oldest elements will be removed when adding new ones
 
+        # Discount factor to discount future rewards
         self.gamma = 0.95
+
 
         ### DOUBLE Q-LEARNING PARAMETERS ###
         self.target_update_method = 0  # 0 for Polyak update; 1 for updating after 'update_freq' memory replays
@@ -45,7 +53,11 @@ class DQNAgent:
 
         # Percentage of actions to be random
         self.epsilon = 1.0
+        
+        # As the agent is learning, decrease the epsilon factor to shift focus from exploration to exploitation
         self.epsilon_decay = 0.995
+
+        # Minimum value for epsilon
         self.epsilon_min = 0.1
 
         # Parameters for model evaluation
@@ -65,18 +77,27 @@ class DQNAgent:
 
         self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}, net:('
 
-    # Design of the deep-q neural network
+    # Design of the deep-q neural network to approximate optimal policy
     def _build_model(self):
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(self.internal_layers[0], input_dim=self.state_size, activation='relu'))
+        model.add(
+                  keras.layers.Dense(self.internal_layers[0],
+                  input_dim=self.state_size,
+                  activation='relu')
+                  )
+
         for i in range(1, len(self.internal_layers)):
             model.add(keras.layers.Dense(self.internal_layers[i], activation='relu'))
 
+        # Add ouput layer, which has a neuron for each action. We choose a linear model s.t. the action astimates are directly correlated to the neurons
         model.add(keras.layers.Dense(self.action_size, activation='linear'))
+
+        # mse (mean squared error) loss turns out to work more accurately than cross entropy in this case
         model.compile(loss='mse', optimizer=keras.optimizers.Adam(lr=self.learning_rate))
         return model
 
     # Appends an experience to the replay memory
+    # Models, given an action and state, what will happen in the next state and the associated reward
     def remember(self, state, action, reward, next_state, done):
         self.memory.append([state, action, reward, next_state, done])
 
@@ -86,8 +107,8 @@ class DQNAgent:
         if test:
             epsilon = self.epsilon_greedy
         if np.random.rand() <= epsilon:
-            return random.randrange(self.action_size)
-        act_value = self.model.predict(state)
+            return random.randrange(self.action_size) # exploratory action
+        act_value = self.model.predict(state)         # exploitative action
         return np.argmax(act_value[0])
 
     # Trains the model on batch_size experiences picked from self.memory at random
@@ -96,6 +117,7 @@ class DQNAgent:
         if len(self.memory) < batch_size:
             return
         # Pick random minibatch from replay memory
+        # To train neural network and improve approximation of optimal policy
         minibatch = random.sample(self.memory, batch_size)
         # Train the model on each element in the minibatch
         for state, action, reward, next_state, done in minibatch:
@@ -103,10 +125,12 @@ class DQNAgent:
             target = reward
             if not done:
                 target = reward + self.gamma * np.max(self.model_t.predict(next_state)[0])
+            # Maximize future reward to current reward:
             target_f = self.model.predict(state)
+            # Map terget for current state to future state
             target_f[0][action] = target
 
-            # One backprop step
+            # One backpropagation step: one step in fitting model to optimal policy
             self.model.fit(state, target_f, batch_size=1, shuffle=False, verbose=0)
 
         # Update the target model (double-q learning)
@@ -139,7 +163,7 @@ class DQNAgent:
             s = np.reshape(s, [1, state_size])
             current_reward = []
             for j in range(self.timeout):
-                # env.render()
+                env.render()
                 a = agent.act(s, test=True)
                 ns, r, d, _ = env.step(a)
                 r = r if not d else -10
@@ -163,14 +187,15 @@ def main():
     rewards = []
     for e in range(n_episodes):
         current_reward = 0
-        state = env.reset()
+        state = env.reset() # Start eacht epsiode at the beginning of an episode:
         state = np.reshape(state, [1, state_size])
-        # Play episode (until done or timeout)
+
+        # Play episode (until done or timeout (= maximum game time))
         for time in range(agent.timeout):
-            # env.render()
-            action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
-            reward = reward if not done else -10
+            env.render()            # Will only work on a local machine
+            action = agent.act(state) # action is either 0 or 1: move left or right respectively
+            next_state, reward, done, _ = env.step(action) # Pass in an action and retrieve next state and reward
+            reward = reward if not done else -10 # -10 is the penalty applied for poor actions
             current_reward += reward
             next_state = np.reshape(next_state, [1, state_size])
             agent.remember(state, action, reward, next_state, done)
