@@ -33,6 +33,18 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 
+class ReplayMemory:
+    def __init__(self, length):
+        self.observations = deque(length)
+        self.actions = deque(length)
+        self.rewards = deque(length)
+        self.dones = deque(length)
+
+
+    def new_experience(self, state, action, reward, next_state, done):
+
+
+
 class DQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
@@ -188,17 +200,27 @@ def main():
     rewards = []
     for e in range(n_episodes):
         current_reward = 0
-        state = env.reset() # Start eacht epsiode at the beginning of an episode:
+        state = env.reset()  # Start each episode at the beginning of an episode:
         state = np.reshape(state, [1, state_size])
 
         # Play episode (until done or timeout (= maximum game time))
         for time in range(agent.timeout):
             env.render()            # Will only work on a local machine
-            action = agent.act(state) # action is either 0 or 1: move left or right respectively
-            next_state, reward, done, _ = env.step(action) # Pass in an action and retrieve next state and reward
-            reward = reward if not done else -10 # -10 is the penalty applied for poor actions
+            action = agent.act(state)  # action is either 0 or 1: move left or right respectively
+            next_state, reward, done, _ = env.step(action)  # Pass in an action and retrieve next state and reward
+            reward = reward if not done else -10  # -10 is the penalty applied for poor actions
             current_reward += reward
             next_state = np.reshape(next_state, [1, state_size])
+
+            '''
+            De agent leert op basis van een batch memories uit zijn ervaringen (=replay_memory). 
+            -> We willen dat elke ervaring wordt voorgesteld op een bepaalde manier (= voorstelling van geschiedenis)
+            state en next_state in onderstaande remember-functie moeten dan voorgesteld worden op die bepaalde manier?
+            '''
+
+            state_and_history = agent.get_representation()
+
+
             agent.remember(state, action, reward, next_state, done)
             state = next_state
 
