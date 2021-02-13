@@ -10,6 +10,10 @@ Als de agent hiermee interageert (op drukt), verschijnt er in één van de ander
 Wanneer de agent met het koekje interageert (opeten), krijgt hij 1 rewardpunt.
 1 episode bestaat uit 100 Actions waarin de agent zo veel mogelijk koekjes probeert te eten.
 
+tekening met kamernummers:
+      |2| 
+    |1|0|3|
+
 De agent kan enkel dingen observeren in de kamer waar hij is.
 
 (Voor een volgende versie kunnen we evt de kamers groter maken. 

@@ -32,6 +32,7 @@ output_dir = f'model_output/{environment}/'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
+
 class DQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
