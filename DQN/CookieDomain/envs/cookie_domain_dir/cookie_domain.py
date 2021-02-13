@@ -61,29 +61,34 @@ class CookieDomain(gym.Env):
         new_room = room
         reward = 0.0
         if action == 0:
+            reward = -1
             if room == 0:
                 new_room = 1
             elif room == 3:
                 new_room = 0
         elif action == 1:
+            reward = -1
             if room == 1:
                 new_room = 0
             elif room == 0:
                 new_room = 3
         elif action == 2:
+            reward = -1
             if room == 0:
                 new_room = 2
         elif action == 3:
+            reward = -1
             if room == 2:
                 new_room = 0
         else:
             if self.button == room:
+                reward = 0.0
                 possible = [1,2,3]
                 possible.remove(room)
                 self.cookie = possible[rnd.randint(0,1)]
             elif self.cookie is not None and room == self.cookie:
                 self.button = rnd.randint(1, self.n_rooms+1)
-                reward = 1.0
+                reward = 5.0
 
         obj = 0
         if new_room == self.button:
@@ -100,7 +105,7 @@ class CookieDomain(gym.Env):
 
 
     def reset(self):
-        self.button = rnd.randint(1, self.n_rooms+1)
+        self.button = 1 #rnd.randint(1, self.n_rooms+1)
         self.cookie = None
         self.state = 0,0
         self.n_steps = 0

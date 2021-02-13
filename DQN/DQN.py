@@ -3,6 +3,7 @@ import envs
 import random
 import numpy as np
 import os
+import itertools
 
 from collections import deque # List which allows to add items in the front and to the end
 from tensorflow import keras  # To crate neural network to approximate optimal policy
@@ -11,19 +12,22 @@ from tqdm import tqdm
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
+
 # PARAMETERS 
 
-#environment = "CookieDomain-v0" # Name of the environment we'll be training in 
-environment = "CartPole-v0" # Name of the environment we'll be training in 
+environment = "CookieDomain-v0" # Name of the environment we'll be training in
+#environment = "CartPole-v0" # Name of the environment we'll be training in
 env = gym.make(environment)
 
 
-#state_size = env.observation_space.n   #shape[0]
-state_size = env.observation_space.shape[0]   #shape[0]
+state_size = env.observation_space.n  #shape[0]
+#state_size = env.observation_space.shape[0]   #shape[0]
 acion_size = env.action_space.n
 
 batch_size = 64  # Should be a power of 2
 n_episodes = 350 # Number of games we want to play
+
+history_size = 4 # 1 + aantal vorige states je beschouwt
 
 
 output_dir = f'model_output/{environment}/'
@@ -34,15 +38,37 @@ if not os.path.exists(output_dir):
 
 
 class ReplayMemory:
-    def __init__(self, length):
-        self.observations = deque(length)
-        self.actions = deque(length)
-        self.rewards = deque(length)
-        self.dones = deque(length)
+    def __init__(self, maxlen):
+        self.observations = deque(maxlen=maxlen)
+        self.actions = deque(maxlen=maxlen)
+        self.rewards = deque(maxlen=maxlen)
+        self.dones = deque(maxlen=maxlen)
 
+    def add_experience(self, state, action, reward, done):
+        self.observations.append(state[0])
+        self.actions.append(action)
+        self.rewards.append(reward)
+        self.dones.append(done)
 
-    def new_experience(self, state, action, reward, next_state, done):
+    def get_state(self, i):
+        # stel i is index in self.observations
+        # return [[i-n...i], action in i, reward in i [i-n, i], done in i]
+        n = history_size
 
+        # Neem slices van de observations voor states en new_states en zet deze in de juiste vorm (zie comments hierboven)
+        states = list(itertools.islice(self.observations, i - n, i))
+        new_states = list(itertools.islice(self.observations, i - n+1, i+1))
+        states = np.reshape(np.concatenate(states).ravel(), [1, state_size*n])
+        new_states = np.reshape(np.concatenate(new_states).ravel(), [1, state_size*n])
+        # return de state (= lijst met voorlaatste state en de n-1 states daarvoor, de actie die leidt tot de
+        # laaste state en de n-1 states daarvoor, en de reward die je voor die actie krijgt)
+        return [states, self.actions[i], self.rewards[i], new_states, self.dones[i]]
+
+    # maak een mini batch die bestaat uit batch_size elementen (één element is hetgeen wat de get_state funtie returnt)
+    def get_mini_batch(self, batch_size):
+        ind_range = list(range(history_size, len(self.observations) - history_size))
+        random_indices = random.sample(ind_range, batch_size)
+        return [self.get_state(i) for i in random_indices]
 
 
 class DQNAgent:
@@ -51,7 +77,7 @@ class DQNAgent:
         self.action_size = action_size
 
         # Replay memory and size
-        self.memory = deque(maxlen=2000) # When deque length exceeds 2000, oldest elements will be removed when adding new ones
+        self.memory = ReplayMemory(5000) #deque(maxlen=2000) # When deque length exceeds 2000, oldest elements will be removed when adding new ones
 
         # Discount factor to discount future rewards
         self.gamma = 0.95
@@ -75,8 +101,10 @@ class DQNAgent:
 
         # Parameters for model evaluation
         self.epsilon_greedy = 0.05  # Use sometimes random actions in stead of the model output
-        self.do_evaluate = False
+        self.do_evaluate = True
         self.show_progressbar = False
+        # FOUT: HARDCODED 8
+        self.model_memory = deque(history_size*state_size*[0], maxlen=history_size*state_size)
 
         self.learning_rate = 0.01
 
@@ -88,14 +116,14 @@ class DQNAgent:
         self.model_t = self._build_model()
         self.model_t.set_weights(self.model.get_weights())
 
-        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}, net:('
+        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}, net:{self.internal_layers}'
 
     # Design of the deep-q neural network to approximate optimal policy
     def _build_model(self):
         model = keras.models.Sequential()
         model.add(
                   keras.layers.Dense(self.internal_layers[0],
-                  input_dim=self.state_size,
+                  input_dim=self.state_size*history_size,
                   activation='relu')
                   )
 
@@ -112,7 +140,8 @@ class DQNAgent:
     # Appends an experience to the replay memory
     # Models, given an action and state, what will happen in the next state and the associated reward
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append([state, action, reward, next_state, done])
+        #self.memory.append([state, action, reward, next_state, done])
+        self.memory.add_experience(state, action, reward, done)
 
     # Choose an action based on the current state or a random action with probability epsilon
     def act(self, state, test=False):
@@ -120,18 +149,25 @@ class DQNAgent:
         if test:
             epsilon = self.epsilon_greedy
         if np.random.rand() <= epsilon:
-            return random.randrange(self.action_size) # exploratory action
+            return random.randrange(self.action_size)  # exploratory action
+
+        # Ook wanneer je het model test wilt het model een vector als input die ook de history bevat.
+        # de agent bevat dus ook een atribuut (=model_memory) dat bijhoudt wat de vorige observaties waren. (zie evaluate functie)
+        if test:
+            act_value = self.model.predict(np.reshape(list(self.model_memory), [1, history_size*state_size]))
+            return np.argmax(act_value[0])
+
         act_value = self.model.predict(state)         # exploitative action
         return np.argmax(act_value[0])
 
     # Trains the model on batch_size experiences picked from self.memory at random
     def replay(self, batch_size):
         # Training is possible if memory has enough experiences
-        if len(self.memory) < batch_size:
+        if len(self.memory.observations) < batch_size: #len(self.memory) < batch_size:
             return
         # Pick random minibatch from replay memory
         # To train neural network and improve approximation of optimal policy
-        minibatch = random.sample(self.memory, batch_size)
+        minibatch = self.memory.get_mini_batch(batch_size) #random.sample(self.memory, batch_size)
         # Train the model on each element in the minibatch
         for state, action, reward, next_state, done in minibatch:
             # Determine the target reward
@@ -169,8 +205,9 @@ class DQNAgent:
             agent.model_t_update_counter += 1
 
     # Method to calculate the average reward for the current model over n trials
-    def evaluate(self, n=30):
+    def evaluate(self, n=15):
         avr = []
+        self.model_memory = deque(history_size*2*[0], maxlen=history_size*2)
         for _ in tqdm(range(n), disable=not self.show_progressbar):
             s = env.reset()
             s = np.reshape(s, [1, state_size])
@@ -181,8 +218,9 @@ class DQNAgent:
                 ns, r, d, _ = env.step(a)
                 r = r if not d else -10
                 current_reward.append(r)
-                ns = np.reshape(ns, [1, state_size])
                 s = ns
+                # voeg de huidige observatie toe aan het geheugen om deze nog te weten binnen n stappen
+                for i in s: self.model_memory.append(i)
                 if d:
                     avr.append(sum(current_reward))
                     break
@@ -198,7 +236,7 @@ class DQNAgent:
 def main():
     print(agent.name)
     rewards = []
-    for e in range(n_episodes):
+    for e in range(n_episodes+1):
         current_reward = 0
         state = env.reset()  # Start each episode at the beginning of an episode:
         state = np.reshape(state, [1, state_size])
@@ -206,27 +244,30 @@ def main():
         # Play episode (until done or timeout (= maximum game time))
         for time in range(agent.timeout):
             env.render()            # Will only work on a local machine
-            action = agent.act(state)  # action is either 0 or 1: move left or right respectively
+
+            # als je nog niet voldoende observaties deed doe je gewoon of de agent nu en in het verleden allemaal nullen zag
+            # Dit zou nog aangepast kunnen worden naar bvb de observaties aanvullen tot het jusite aantal. Stel dat je bvb nog maar één observatie deed
+            # dan kan je deze observatie aanvullen met 0'en zodat je hitory_size observaties in history_rep hebt.
+            if len(agent.memory.observations) < history_size:
+                history_rep = history_size*state_size*[0]
+            else:
+                # lelijke one-liner om laaste history_size observaties uit de observations van de agent te halen en de juiste vorm te geven
+                mem_size = len(agent.memory.observations)
+                history_rep = list(itertools.islice(agent.memory.observations, mem_size - history_size, mem_size))
+                history_rep = np.reshape(np.concatenate(history_rep).ravel(), [1, state_size*history_size])
+
+            action = agent.act(history_rep) #agent.act(state)  # action is either 0 or 1: move left or right respectively
             next_state, reward, done, _ = env.step(action)  # Pass in an action and retrieve next state and reward
-            reward = reward if not done else -10  # -10 is the penalty applied for poor actions
+            reward = reward if not done else 0.0  # -10 is the penalty applied for poor actions
             current_reward += reward
             next_state = np.reshape(next_state, [1, state_size])
-
-            '''
-            De agent leert op basis van een batch memories uit zijn ervaringen (=replay_memory). 
-            -> We willen dat elke ervaring wordt voorgesteld op een bepaalde manier (= voorstelling van geschiedenis)
-            state en next_state in onderstaande remember-functie moeten dan voorgesteld worden op die bepaalde manier?
-            '''
-
-            state_and_history = agent.get_representation()
-
 
             agent.remember(state, action, reward, next_state, done)
             state = next_state
 
             # What to do after each episode: evaluate agent if needed and print progress
             if done:
-                if agent.do_evaluate or e % 100 == 0:  # uncomment to evaluate agent every 100 episodes
+                if agent.do_evaluate: #or e % 100 == 0:  # uncomment to evaluate agent every 100 episodes
                     avv_reward = agent.evaluate()
                     rewards.append(avv_reward)
                     print(f"episode {e}/{n_episodes}, score: {time}, average reward: {avv_reward}, e: {agent.epsilon:.2}")
