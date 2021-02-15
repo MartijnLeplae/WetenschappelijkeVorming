@@ -5,12 +5,17 @@ import numpy as np
 import os
 import itertools
 
+render = False  # Display graphs and render environment? -> not possible on remote machine
+
 from collections import deque # List which allows to add items in the front and to the end
 from tensorflow import keras  # To crate neural network to approximate optimal policy
+import matplotlib
+if not render:
+    matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-render = False  # Display graphs and render environment? -> not possible on remote machine
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
