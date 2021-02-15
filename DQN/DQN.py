@@ -345,7 +345,7 @@ def main():
         plt.title(f'Average Rewards in {environment} on {n_episodes} episodes')
         # Plot rewards
         plt.plot(rewards)
-        dir_name = 'graphs/'
+        dir_name = f'graphs/{environment}/'
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         plt.savefig(dir_name + agent.name + '.png')
