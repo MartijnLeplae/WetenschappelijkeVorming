@@ -90,6 +90,7 @@ class CookieDomain(gym.Env):
                 self.cookie = possible[rnd.randint(0,1)]
             elif self.cookie is not None and room == self.cookie:
                 self.button = self._get_new_button_pos()
+                self.cookie = None
                 reward = 1
                 self.nb_cookies_eaten += 1
 
