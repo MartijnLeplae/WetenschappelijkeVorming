@@ -32,7 +32,7 @@ state_size = env.observation_space.n  #shape[0]
 acion_size = env.action_space.n
 
 batch_size = 32  # Should be a power of 2
-n_episodes = 1000 # Number of games we want to play
+n_episodes = 1001 # Number of games we want to play
 
 history_size = 7 # 1 + nb of previous states to use
 dqn_input_vector_size = state_size*history_size  # what is the size of the inputlayer of the dqn
@@ -162,7 +162,7 @@ class DQNAgent:
         self.timeout = 250  # Maximum steps in one episode (CartPole is limited to 200 by itself)
 
         # Build model and target model
-        self.internal_layers = [20,30,20]
+        self.internal_layers = [25,35,25]
         self.model = self._build_model()
         self.model_t = self._build_model()
         self.model_t.set_weights(self.model.get_weights())
