@@ -1,5 +1,5 @@
 import gym
-import envs
+#import envs
 import random
 import numpy as np
 import os
@@ -9,6 +9,8 @@ from collections import deque # List which allows to add items in the front and 
 from tensorflow import keras  # To crate neural network to approximate optimal policy
 from matplotlib import pyplot as plt
 from tqdm import tqdm
+
+render = False  # Display graphs and render environment? -> not possible on remote machine
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress annoying warnings
 
@@ -257,7 +259,8 @@ class DQNAgent:
             current_reward = []
             self.model_memory.reset()
             for j in range(self.timeout):
-                env.render()
+                if render:
+                    env.render()
                 a = agent.act(s, test=True)
                 ns, r, d, _ = env.step(a)
                 r = r if not d else end_episode_reward
@@ -288,7 +291,8 @@ def main():
 
         # Play episode (until done or timeout (= maximum game time))
         for time in range(agent.timeout):
-            env.render()            # Will only work on a local machine
+            if render:
+                env.render()            # Will only work on a local machine
 
             # als je nog niet voldoende observaties deed doe je gewoon of de agent nu en in het verleden allemaal nullen zag
             # Dit zou nog aangepast kunnen worden naar bvb de observaties aanvullen tot het jusite aantal. Stel dat je bvb nog maar één observatie deed
@@ -340,7 +344,8 @@ def main():
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
         plt.savefig(dir_name + agent.name + '.png')
-        plt.show()  # (uncomment to display graph after training, only works when having a screen (not via ssh))
+        if render:
+            plt.show()  # (uncomment to display graph after training, only works when having a screen (not via ssh))
 
 
 # Method to test an agent for given model (name = path to .hdf5 file)
@@ -354,7 +359,8 @@ def test_agent(name):
         s = env.reset()
         s = np.reshape(s, [1, state_size])
         for i in range(agent.timeout):
-            env.render()
+            if render:
+                env.render()
             a = agent.act(s, test=True)
             ns, r, d, _ = env.step(a)
             if d:
