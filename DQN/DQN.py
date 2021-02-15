@@ -27,9 +27,15 @@ acion_size = env.action_space.n
 batch_size = 32  # Should be a power of 2
 n_episodes = 350 # Number of games we want to play
 
-history_size = 9 # 1 + aantal vorige states je beschouwt
+history_size = 9 # 1 + nb of previous states to use
+dqn_input_vector_size = state_size*history_size  # what is the size of the inputlayer of the dqn
+                                                 # This is the same as the history size*state_size if the representation
+                                                 # only contains current and previous states. But it can differ
+                                                 # if extra information is added
 
-end_episode_reward = 0.0
+end_episode_reward = 0.0  # What reward is given at the end of an episode. Can be negative if ending the episode is
+                          # considered a bad thing. (e.g in cookiedomain-v0 it is not considered bad because one episode
+                          # is always the same length
 
 
 output_dir = f'model_output/{environment}/'
@@ -47,7 +53,7 @@ class ReplayMemory:
         self.actions = deque(maxlen=maxlen)
         self.rewards = deque(maxlen=maxlen)
         self.dones = deque(maxlen=maxlen)
-        self.repr = 0
+        self.repr = 0  # What representation to use? (In get_repr_at method)
 
     def add_experience(self, state, action, reward, done):
         self.observations.append(state[0])
@@ -56,11 +62,16 @@ class ReplayMemory:
         self.dones.append(done)
 
     def get_repr_at(self, i):
+        # Representation 0 -> return a vector containing history size states
         if self.repr == 0:
             n = self.history_size
             states = list(itertools.islice(self.observations, i - n, i))
             states = np.reshape(np.concatenate(states).ravel(), [1, state_size * n])
             return states
+        # Representation 1 -> same as repr 0, but an extra element is appended expressing whether
+        # an interaction was done in the past states or not.
+        # (But is does not mean that that interaction was any good:
+        # pressing multiple times on the button, interacting when no button or cookie is present,...)
         elif self.repr == 1:
             n = self.history_size
             states = list(itertools.islice(self.observations, i - n, i))
@@ -74,6 +85,8 @@ class ReplayMemory:
             repr = np.reshape(repr,[1,self.history_size*state_size+1])
             return repr
 
+    # Returns the representation of the state at position i of the replay memory
+    # The states and new_states variables are thus represented as specified in get_repr_at method
     def get_state(self, i):
         # stel i is index in self.observations
         # return [[i-n...i], action in i, reward in i, [i-n+1, i+1], done in i]
@@ -89,10 +102,14 @@ class ReplayMemory:
         random_indices = random.sample(ind_range, batch_size)
         return [self.get_state(i) for i in random_indices]
 
+    # This function is used to reset empty the replay memory and fill it with zeros.
+    # It is needed between two episodes in the testing environment. (Cause it is the same agent
+    # and we don't want the agent to base his decisions on previous episodes)
     def reset(self):
         for i in range(self.maxlen):
             self.add_experience(np.reshape(np.array([0]*state_size), [1,state_size]),0,0,0)
 
+    # The length of a ReplayMemory object is defined as the length of the observations attribute
     def __len__(self):
         return len(self.observations)
 
@@ -129,6 +146,7 @@ class DQNAgent:
         self.epsilon_greedy = 0.05  # Use sometimes random actions in stead of the model output
         self.do_evaluate = True
         self.show_progressbar = False
+        # This is the memory used in a test method
         self.model_memory = ReplayMemory(history_size) #deque(history_size*state_size*[0], maxlen=history_size*state_size)
         self.model_memory.reset()
 
@@ -149,7 +167,7 @@ class DQNAgent:
         model = keras.models.Sequential()
         model.add(
                   keras.layers.Dense(self.internal_layers[0],
-                  input_dim=self.state_size*history_size,
+                  input_dim=dqn_input_vector_size,
                   activation='relu')
                   )
 
@@ -176,7 +194,6 @@ class DQNAgent:
             epsilon = self.epsilon_greedy
         if np.random.rand() <= epsilon:
             return random.randrange(self.action_size)  # exploratory action
-
         # Ook wanneer je het model test wilt het model een vector als input die ook de history bevat.
         # de agent bevat dus ook een atribuut (=model_memory) dat bijhoudt wat de vorige observaties waren. (zie evaluate functie)
         if test:
@@ -246,7 +263,7 @@ class DQNAgent:
                 r = r if not d else end_episode_reward
                 current_reward.append(r)
                 ns = np.reshape(ns, [1, state_size])
-                # voeg de huidige observatie toe aan het geheugen om deze nog te weten binnen n stappen
+                # Add the current observation to the memory so this information is still present in n steps
                 self.model_memory.add_experience(s,a,r,d)
                 s = ns
                 if d:
@@ -279,10 +296,7 @@ def main():
             if len(agent.memory.observations) < history_size:
                 history_rep = history_size*state_size*[0]
             else:
-                # lelijke one-liner om laaste history_size observaties uit de observations van de agent te halen en de juiste vorm te geven
-                # mem_size = len(agent.memory.observations)
-                # history_rep = list(itertools.islice(agent.memory.observations, mem_size - history_size, mem_size))
-                # history_rep = np.reshape(np.concatenate(history_rep).ravel(), [1, state_size*history_size])
+                # If the replay memory is large enough, the history representation of the current state is asked
                 history_rep = agent.memory.get_repr_at(len(agent.memory))
 
             action = agent.act(history_rep) #agent.act(state)  # action is either 0 or 1: move left or right respectively
@@ -330,6 +344,8 @@ def main():
 
 
 # Method to test an agent for given model (name = path to .hdf5 file)
+# Possible improvement: Some variables have to be te same as in training (network layout, ...) but
+# this is not automatically done right now
 def test_agent(name):
     agent.load(name)
     print('max achievable reward: 199')
