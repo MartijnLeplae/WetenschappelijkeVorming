@@ -45,14 +45,15 @@ class CookieDomain(gym.Env):
         self.cookie = None
 
         self.n_steps = 0
-        self.step_limit = 100 # nb of actions in one episode
+        self.step_limit = 200 # nb of actions in one episode
 
         self.action_space = spaces.Discrete(5) # Left, Right, Up, Down, Interact(=> push button, eat cookie if possible)
         self.observation_space = spaces.Discrete(2) # (Room, interactable object)
 
         self.state = None
 
-        print('Environment initialised succesfully!')
+        # keep track of the nb cookies eaten for debugging purposes
+        self.nb_cookies_eaten = 0
 
     def step(self, action):
         err_msg = f"{action} ({type(action)}) invalid"
@@ -81,14 +82,16 @@ class CookieDomain(gym.Env):
             if room == 2:
                 new_room = 0
         else:
+            reward = -1
             if self.button == room:
-                reward = 0.0
+                reward = -0.5
                 possible = [1,2,3]
                 possible.remove(room)
                 self.cookie = possible[rnd.randint(0,1)]
             elif self.cookie is not None and room == self.cookie:
-                self.button = rnd.randint(1, self.n_rooms+1)
-                reward = 5.0
+                self.button = self._get_new_button_pos()
+                reward = 1
+                self.nb_cookies_eaten += 1
 
         obj = 0
         if new_room == self.button:
@@ -98,14 +101,19 @@ class CookieDomain(gym.Env):
 
         self.state = new_room, obj
         done = (self.n_steps >= self.step_limit)
+        # if done:
+        #     print(f'Cookies eaten in {self.n_steps} steps = {self.nb_cookies_eaten}')
 
         self.n_steps += 1
 
         return np.array(self.state), reward, done, {}
 
+    def _get_new_button_pos(self):
+        return 1 #rnd.randint(1, self.n_rooms+1)
 
     def reset(self):
-        self.button = 1 #rnd.randint(1, self.n_rooms+1)
+        self.nb_cookies_eaten = 0
+        self.button = self._get_new_button_pos()
         self.cookie = None
         self.state = 0,0
         self.n_steps = 0
