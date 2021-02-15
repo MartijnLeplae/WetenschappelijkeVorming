@@ -35,6 +35,7 @@ batch_size = 32  # Should be a power of 2
 n_episodes = 1002 # Number of games we want to play
 
 history_size = 3 # 1 + nb of previous states to use
+
 dqn_input_vector_size = state_size*history_size  # what is the size of the inputlayer of the dqn
                                                  # This is the same as the history size*state_size if the representation
                                                  # only contains current and previous states. But it can differ
@@ -63,7 +64,7 @@ class ReplayMemory:
         self.repr = 0  # What representation to use? (In get_repr_at method)
 
     def add_experience(self, state, action, reward, done):
-        self.observations.append(state[0])
+        self.observations.append(state)
         self.actions.append(action)
         self.rewards.append(reward)
         self.dones.append(done)
@@ -82,14 +83,14 @@ class ReplayMemory:
         elif self.repr == 1:
             n = self.history_size
             states = list(itertools.islice(self.observations, i - n, i))
-            states = np.reshape(np.concatenate(states).ravel(), [1, state_size * n])
+            #states = np.reshape(np.concatenate(states).ravel(), [1, state_size * n])
             past_actions = list(itertools.islice(self.actions, i - n, i))
             did_interaction = past_actions.__contains__(4)
             to_add = 0
             if did_interaction:
                 to_add = 1
             repr = np.append(states, to_add)
-            repr = np.reshape(repr,[1,self.history_size*state_size+1])
+            #repr = np.reshape(repr,[1,self.history_size*state_size+1])
             return repr
 
     # Returns the representation of the state at position i of the replay memory
@@ -101,7 +102,7 @@ class ReplayMemory:
         new_states = self.get_repr_at(i + 1)
         # return de state (= lijst met voorlaatste state en de n-1 states daarvoor, de actie die leidt tot de
         # laaste state en de n-1 states daarvoor, en de reward die je voor die actie krijgt)
-        return [states, self.actions[i-1], self.rewards[i-1], new_states, self.dones[i-1]]
+        return [states, self.actions[i], self.rewards[i], new_states, self.dones[i]]
 
     # maak een mini batch die bestaat uit batch_size elementen (één element is hetgeen wat de get_state funtie returnt)
     def get_mini_batch(self, batch_size):
@@ -114,7 +115,7 @@ class ReplayMemory:
     # and we don't want the agent to base his decisions on previous episodes)
     def reset(self):
         for i in range(self.maxlen):
-            self.add_experience(np.reshape(np.array([0]*state_size), [1,state_size]),0,0,0)
+            self.add_experience(np.array([0]*state_size),0,0,0)
 
     # The length of a ReplayMemory object is defined as the length of the observations attribute
     def __len__(self):
@@ -167,7 +168,9 @@ class DQNAgent:
         self.model_t = self._build_model()
         self.model_t.set_weights(self.model.get_weights())
 
-        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, dq:{self.target_update_method}, net:{self.internal_layers},hs:{history_size}, ep:{n_episodes}'
+        self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, ' \
+                    f'dq:{self.target_update_method}, net:{self.internal_layers},ep:{n_episodes}'
+
 
     # Design of the deep-q neural network to approximate optimal policy
     def _build_model(self):
@@ -270,9 +273,9 @@ class DQNAgent:
                 ns, r, d, _ = env.step(a)
                 r = r if not d else end_episode_reward
                 current_reward.append(r)
-                ns = np.reshape(ns, [1, state_size])
+                #ns = np.reshape(ns, [1, state_size])
                 # Add the current observation to the memory so this information is still present in n steps
-                self.model_memory.add_experience(s,a,r,d)
+                self.model_memory.add_experience(ns,a,r,d)
                 s = ns
                 if d:
                     avr.append(sum(current_reward))
@@ -303,7 +306,7 @@ def main():
             # Dit zou nog aangepast kunnen worden naar bvb de observaties aanvullen tot het jusite aantal. Stel dat je bvb nog maar één observatie deed
             # dan kan je deze observatie aanvullen met 0'en zodat je hitory_size observaties in history_rep hebt.
             if len(agent.memory.observations) < history_size:
-                history_rep = history_size*state_size*[0]
+                history_rep = dqn_input_vector_size*[0]
             else:
                 # If the replay memory is large enough, the history representation of the current state is asked
                 history_rep = agent.memory.get_repr_at(len(agent.memory))
@@ -312,10 +315,10 @@ def main():
             next_state, reward, done, _ = env.step(action)  # Pass in an action and retrieve next state and reward
             reward = reward if not done else end_episode_reward  # -10 is the penalty applied for poor actions
             current_reward += reward
-            next_state = np.reshape(next_state, [1, state_size])
+            # next_state = np.reshape(next_state, [1, state_size])
 
-            agent.remember(state, action, reward, next_state, done)
-            state = next_state
+            agent.remember(next_state, action, reward, next_state, done)
+            # state = next_state
 
             # What to do after each episode: evaluate agent if needed and print progress
             if done:
