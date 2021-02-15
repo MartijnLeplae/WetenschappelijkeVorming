@@ -84,7 +84,6 @@ class CookieDomain(gym.Env):
         else:
             reward = -1
             if self.button == room:
-                reward = -0.5
                 possible = [1,2,3]
                 possible.remove(room)
                 self.cookie = possible[rnd.randint(0,1)]
@@ -102,10 +101,10 @@ class CookieDomain(gym.Env):
 
         self.state = new_room, obj
         done = (self.n_steps >= self.step_limit)
-        if done and self.nb_cookies_eaten > 30:
-            print(f'More than 30 cookies eaten:{self.nb_cookies_eaten}')
-        # if done:
-        #     print(f'Cookies eaten in {self.n_steps} steps = {self.nb_cookies_eaten}')
+        # if done and self.nb_cookies_eaten > 30:
+        #     print(f'More than 30 cookies were eaten:{self.nb_cookies_eaten}')
+        if done:
+            print(f'Cookies eaten in {self.n_steps} steps = {self.nb_cookies_eaten}')
 
         self.n_steps += 1
 
