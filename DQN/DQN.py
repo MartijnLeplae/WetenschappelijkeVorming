@@ -34,7 +34,7 @@ acion_size = env.action_space.n
 batch_size = 32  # Should be a power of 2
 n_episodes = 1002 # Number of games we want to play
 
-history_size = 3 # 1 + nb of previous states to use
+history_size = 7 # 1 + nb of previous states to use
 
 dqn_input_vector_size = state_size*history_size  # what is the size of the inputlayer of the dqn
                                                  # This is the same as the history size*state_size if the representation
@@ -74,7 +74,7 @@ class ReplayMemory:
         if self.repr == 0:
             n = self.history_size
             states = list(itertools.islice(self.observations, i - n, i))
-            states = np.reshape(np.concatenate(states).ravel(), [1, state_size * n])
+            states = np.reshape(np.concatenate(states).ravel(), [1, dqn_input_vector_size])
             return states
         # Representation 1 -> same as repr 0, but an extra element is appended expressing whether
         # an interaction was done in the past states or not.
@@ -90,7 +90,7 @@ class ReplayMemory:
             if did_interaction:
                 to_add = 1
             repr = np.append(states, to_add)
-            #repr = np.reshape(repr,[1,self.history_size*state_size+1])
+            repr = np.reshape(repr,[1,self.history_size*state_size+1])
             return repr
 
     # Returns the representation of the state at position i of the replay memory
@@ -115,7 +115,7 @@ class ReplayMemory:
     # and we don't want the agent to base his decisions on previous episodes)
     def reset(self):
         for i in range(self.maxlen):
-            self.add_experience(np.array([0]*state_size),0,0,0)
+            self.add_experience(np.array([0]*state_size),0,0,False)
 
     # The length of a ReplayMemory object is defined as the length of the observations attribute
     def __len__(self):
