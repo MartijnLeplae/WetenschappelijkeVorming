@@ -163,7 +163,7 @@ class DQNAgent:
         self.timeout = 250  # Maximum steps in one episode (CartPole is limited to 200 by itself)
 
         # Build model and target model
-        self.internal_layers = [30,20]
+        self.internal_layers = [20,20]
         self.model = self._build_model()
         self.model_t = self._build_model()
         self.model_t.set_weights(self.model.get_weights())
