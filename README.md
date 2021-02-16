@@ -9,9 +9,11 @@ TODO:
 # Requirements
 python3.7 -m venv env
 
-pip install tensorflow==1.14
-pip install keras==2.3.1
-pip install gym
+pip install tensorflow==1.14 &&
+pip install keras==2.3.1 &&
+pip install gym &&
+pip install matplotlib && 
+pip install tqdm &&
+
 pip install -e . (in ./WetenschappelijkeVorming/DQN/CookieDomain)
-pip install matplotlib
-pip install tqdm
+
