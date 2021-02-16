@@ -56,6 +56,7 @@ class CookieDomain(gym.Env):
         self.nb_cookies_eaten = 0
 
     def step(self, action):
+        # Returns whether an step was taken in the good direction. This is if new_room is closer to the cookie than room.
         def _good_direction(room, new_room):
             if self.cookie == None:
                 return False
