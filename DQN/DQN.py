@@ -90,8 +90,9 @@ class ReplayMemory:
             if did_interaction:
                 to_add = 1
             repr = np.append(states, to_add)
-            repr = np.reshape(repr,[1,self.history_size*state_size+1])
+            repr = np.reshape(repr, [1, self.history_size*state_size+1])
             return repr
+
 
     # Returns the representation of the state at position i of the replay memory
     # The states and new_states variables are thus represented as specified in get_repr_at method

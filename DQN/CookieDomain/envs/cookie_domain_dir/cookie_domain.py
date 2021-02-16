@@ -56,6 +56,16 @@ class CookieDomain(gym.Env):
         self.nb_cookies_eaten = 0
 
     def step(self, action):
+        def _good_direction(room, new_room):
+            if cookie == None:
+                return False
+            if cookie == 2:
+                if (room == 1 and new_room == 0) or (room == 0 and new_room == 2) or (room == 3 and new_room == 0):
+                    return True
+            elif cookie == 3:
+                if (room == 1 and new_room == 0) or (room == 0 and new_room == 3) or (room == 2 and new_room == 0):
+                    return True
+            return False
         err_msg = f"{action} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
         room, _ = self.state
