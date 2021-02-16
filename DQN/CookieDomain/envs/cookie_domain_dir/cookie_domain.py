@@ -57,12 +57,12 @@ class CookieDomain(gym.Env):
 
     def step(self, action):
         def _good_direction(room, new_room):
-            if cookie == None:
+            if self.cookie == None:
                 return False
-            if cookie == 2:
+            if self.cookie == 2:
                 if (room == 1 and new_room == 0) or (room == 0 and new_room == 2) or (room == 3 and new_room == 0):
                     return True
-            elif cookie == 3:
+            elif self.cookie == 3:
                 if (room == 1 and new_room == 0) or (room == 0 and new_room == 3) or (room == 2 and new_room == 0):
                     return True
             return False
@@ -103,6 +103,8 @@ class CookieDomain(gym.Env):
                 reward = 1
                 self.nb_cookies_eaten += 1
 
+        if _good_direction(room, new_room):
+            reward = 0.25
         obj = 0
         if new_room == self.button:
             obj = 1
