@@ -108,7 +108,7 @@ class CookieDomain(gym.Env):
         # If a step was taken in a good direction, the reward can be different.
         # It has to be seen if it matters how big this intermediate reward is.
         if _good_direction(room, new_room):
-            reward = -0.25
+            reward = 0.5
         obj = 0
         if new_room == self.button:
             obj = 1
