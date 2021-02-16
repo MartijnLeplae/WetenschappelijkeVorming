@@ -171,7 +171,6 @@ class DQNAgent:
         self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, ' \
                     f'dq:{self.target_update_method}, net:{self.internal_layers},hist:{history_size}, ep:{n_episodes}'
 
-
     # Design of the deep-q neural network to approximate optimal policy
     def _build_model(self):
         model = keras.models.Sequential()
@@ -217,7 +216,7 @@ class DQNAgent:
     # Trains the model on batch_size experiences picked from self.memory at random
     def replay(self, batch_size):
         # Training is possible if memory has enough experiences
-        if len(self.memory.observations) < batch_size: #len(self.memory) < batch_size:
+        if len(self.memory.observations) < batch_size+history_size: #len(self.memory) < batch_size:
             return
         # Pick random minibatch from replay memory
         # To train neural network and improve approximation of optimal policy
