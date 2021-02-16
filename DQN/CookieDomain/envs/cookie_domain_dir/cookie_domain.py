@@ -103,7 +103,7 @@ class CookieDomain(gym.Env):
         done = (self.n_steps >= self.step_limit)
         # if done and self.nb_cookies_eaten > 30:
         #     print(f'More than 30 cookies were eaten:{self.nb_cookies_eaten}')
-        #if done:
+        # if done:
         #    print(f'Cookies eaten in {self.n_steps} steps = {self.nb_cookies_eaten}')
 
         self.n_steps += 1

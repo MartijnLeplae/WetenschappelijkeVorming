@@ -104,11 +104,27 @@ class ReplayMemory:
         # laaste state en de n-1 states daarvoor, en de reward die je voor die actie krijgt)
         return [states, self.actions[i], self.rewards[i], new_states, self.dones[i]]
 
+
+
     # maak een mini batch die bestaat uit batch_size elementen (één element is hetgeen wat de get_state funtie returnt)
     def get_mini_batch(self, batch_size):
-        ind_range = list(range(history_size, len(self.observations) - history_size))
+        ind_range = list(range(history_size, len(self.observations)-1))
+        # Steps to make semi-random batch, which slightly favors positive rewards
+        rew = self.rewards
+        rew = list(itertools.islice(rew, history_size, len(self)-1))
+        reward_at = list(zip(ind_range, rew))
+        # Sort the list with (index, reward) tuples on reward
+        srtd = sorted(reward_at, key=lambda x: x[1], reverse=True)
+        srtd = np.array([tup[0] for tup in srtd])
+        # Give each index a specific (decreasing) probability
+        p = np.array([0.99**i for i in range(len(srtd))])
+        # Make sure the rewards add up to one
+        p = p / sum(p)
+        # Construct the minibatch of indexes
+        somewhat_random_indices = np.random.choice(srtd, size=batch_size, p=p)
         random_indices = random.sample(ind_range, batch_size)
-        return [self.get_state(i) for i in random_indices]
+        # return a list of the state representations of the indexes
+        return [self.get_state(i) for i in somewhat_random_indices]
 
     # This function is used to reset empty the replay memory and fill it with zeros.
     # It is needed between two episodes in the testing environment. (Cause it is the same agent
