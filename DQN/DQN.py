@@ -32,7 +32,7 @@ state_size = env.observation_space.n  #shape[0]
 acion_size = env.action_space.n
 
 batch_size = 32  # Should be a power of 2
-n_episodes = 1002 # Number of games we want to play
+n_episodes = 1000 # Number of games we want to play
 
 history_size = 7 # 1 + nb of previous states to use
 
@@ -169,7 +169,7 @@ class DQNAgent:
         self.model_t.set_weights(self.model.get_weights())
 
         self.name = f'g:{self.gamma}, lr:{self.learning_rate}, dc:{self.epsilon_decay}, ' \
-                    f'dq:{self.target_update_method}, net:{self.internal_layers},ep:{n_episodes}'
+                    f'dq:{self.target_update_method}, net:{self.internal_layers},hist:{history_size}, ep:{n_episodes}'
 
 
     # Design of the deep-q neural network to approximate optimal policy
