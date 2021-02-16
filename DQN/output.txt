@@ -26,7 +26,7 @@ nohup: ignoring input
 WARNING:tensorflow:From /home/r0737706/.local/lib/python3.6/site-packages/tensorflow/python/ops/init_ops.py:1251: calling VarianceScaling.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
 Instructions for updating:
 Call initializer instance with the dtype argument instead of passing it to the constructor
-g:0.95, lr:0.001, dc:0.995, dq:0, net:[20, 20],hist:7, ep:1000
+g:0.95, lr:0.001, dc:0.995, dq:0, net:[20, 20],hist:5, ep:1000
 episode 0/1000, average reward: -199.2, e: 1.0
 Traceback (most recent call last):
   File "DQN.py", line 398, in <module>
