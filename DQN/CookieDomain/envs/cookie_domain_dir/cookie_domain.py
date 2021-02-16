@@ -67,6 +67,7 @@ class CookieDomain(gym.Env):
                 if (room == 1 and new_room == 0) or (room == 0 and new_room == 3) or (room == 2 and new_room == 0):
                     return True
             return False
+
         err_msg = f"{action} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
         room, _ = self.state
@@ -104,6 +105,8 @@ class CookieDomain(gym.Env):
                 reward = 1
                 self.nb_cookies_eaten += 1
 
+        # If a step was taken in a good direction, the reward can be different.
+        # It has to be seen if it matters how big this intermediate reward is.
         if _good_direction(room, new_room):
             reward = 0.25
         obj = 0
