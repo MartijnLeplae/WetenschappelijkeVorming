@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Dense, Activation, Flatten
 from tensorflow.keras.optimizers import Adam
 
 from rl.agents.dqn import DQNAgent
-from rl.policy import EpsGreedyQPolicy
+from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
 
 from matplotlib import pyplot as plt
@@ -16,12 +16,13 @@ from matplotlib import pyplot as plt
 
 class Trainer:
     def __init__(self):
-        self.N_EPISODES = 100
-        self.STEPS_PER_EPISODE = 100
+        self.N_EPISODES = 300
+        self.STEPS_PER_EPISODE = 2
         self.BATCH_SIZE = 32
 
-        self.ENV = 'CookieDomain-v0'
+        # self.ENV = 'CookieDomain-v0'
         # self.ENV = 'CartPole-v0'
+        self.ENV = 'WordsWorld-v0'
 
         self.env = gym.make(self.ENV)
 
@@ -31,7 +32,7 @@ class Trainer:
         self.env.seed(123)
 
         self.nb_actions = self.env.action_space.n
-        self.state_size = (self.env.state_vector_size,)  # self.env.observation_space.shape  # (self.env.observation_space.n,)
+        self.state_size = (self.env.observation_space.n,)  # self.env.observation_space.shape  # (self.env.observation_space.n,)
 
         self.warmup_episodes = self.BATCH_SIZE // self.env.episode_length + 1
 
@@ -46,16 +47,16 @@ class Trainer:
     def _build_model(self):
         model = Sequential()
         # Input Layer
-        model.add(Flatten(input_shape=(self.window_length,) + self.state_size))
+        model.add(Flatten(input_shape=self.state_size))
         # Layer 1
-        model.add(Dense(50))
+        model.add(Dense(10))
         model.add(Activation('relu'))
         # Layer 2
-        model.add(Dense(50))
+        model.add(Dense(10))
         model.add(Activation('relu'))
-        # Layer 3
-        model.add(Dense(50))
-        model.add(Activation('relu'))
+        # # Layer 3
+        # model.add(Dense(20))
+        # model.add(Activation('relu'))
         # Output Layer
         model.add(Dense(self.nb_actions))
         model.add(Activation('linear'))
@@ -65,6 +66,8 @@ class Trainer:
         model = self._build_model()
         memory = SequentialMemory(limit=5000, window_length=self.window_length)
         policy = EpsGreedyQPolicy(eps=0.1)
+        # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.1, value_test=0.05,
+        #                               nb_steps=self.env.episode_length*(self.N_EPISODES+self.warmup_episodes)*0.5)
         # test_policy = EpsGreedyQPolicy(eps=0.05)
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                        memory=memory, nb_steps_warmup=self.warmup_episodes*self.env.episode_length,
