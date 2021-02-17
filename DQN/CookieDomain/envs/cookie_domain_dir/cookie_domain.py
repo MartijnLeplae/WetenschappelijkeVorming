@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 import random as rnd
 import numpy as np
+from collections import deque
 
 """
 Idee: 3 kamers en 1 gang. (Kamers en gang hebben grootte 1 om de omgeving wat te vereenvoudigen) 
@@ -45,15 +46,19 @@ class CookieDomain(gym.Env):
         self.cookie = None
 
         self.n_steps = 0
-        self.step_limit = 200 # nb of actions in one episode
+        self.episode_length = 200 # nb of actions in one episode
 
         self.action_space = spaces.Discrete(5) # Left, Right, Up, Down, Interact(=> push button, eat cookie if possible)
         self.observation_space = spaces.Discrete(2) # (Room, interactable object)
+        self.history_length = 5
+        self.state_vector_size = self.observation_space.n*(self.history_length+1)
 
         self.state = None
 
         # keep track of the nb cookies eaten for debugging purposes
         self.nb_cookies_eaten = 0
+
+        self.history = deque([(0,0) for i in range(self.history_length)],maxlen=self.history_length)
 
     def step(self, action):
         # Returns whether an step was taken in the good direction. This is if new_room is closer to the cookie than room.
@@ -108,7 +113,7 @@ class CookieDomain(gym.Env):
         # If a step was taken in a good direction, the reward can be different.
         # It has to be seen if it matters how big this intermediate reward is.
         if _good_direction(room, new_room):
-            reward = 0.5
+            reward = 0.25
         obj = 0
         if new_room == self.button:
             obj = 1
@@ -116,7 +121,7 @@ class CookieDomain(gym.Env):
             obj = 2
 
         self.state = new_room, obj
-        done = (self.n_steps >= self.step_limit)
+        done = (self.n_steps >= self.episode_length)
         # if done and self.nb_cookies_eaten > 30:
         #     print(f'More than 30 cookies were eaten:{self.nb_cookies_eaten}')
         # if done:
@@ -124,7 +129,14 @@ class CookieDomain(gym.Env):
 
         self.n_steps += 1
 
-        return np.array(self.state), reward, done, {}
+        self.current_hist_rep = np.concatenate(list(self.history))
+
+        self.history.append(self.state)
+        s = self._state()
+        return s, reward, done, {}
+
+    def _state(self):
+        return np.concatenate((np.array(self.state), self.current_hist_rep))
 
     # Function to get the new button location (can be random or a specific room)
     def _get_new_button_pos(self):
@@ -136,7 +148,9 @@ class CookieDomain(gym.Env):
         self.cookie = None
         self.state = 0,0
         self.n_steps = 0
-        return np.array(self.state)
+        self.history = deque([(0, 0) for i in range(self.history_length)], maxlen=self.history_length)
+        self.current_hist_rep = np.concatenate(list(self.history))
+        return self._state()
 
-    def render(self):
+    def render(self, mode=None):
         pass
