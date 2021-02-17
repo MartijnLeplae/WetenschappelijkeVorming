@@ -1,9 +1,9 @@
 import gym
 import envs
 
-env = gym.make('CookieDomain-v0')
+env = gym.make('OTTWorld-v0')
 env.reset()
-o = env.observation_space
-print(o.n)
-a = env.step(action=1)
+#o = env.observation_space
+#print(o.n)
+a = env.step()
 env.reset()

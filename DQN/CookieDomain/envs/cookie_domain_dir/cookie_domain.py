@@ -3,6 +3,9 @@ from gym import spaces
 import random as rnd
 import numpy as np
 from collections import deque
+# Imports for rendering
+import time
+import os
 
 """
 Idee: 3 kamers en 1 gang. (Kamers en gang hebben grootte 1 om de omgeving wat te vereenvoudigen) 
@@ -50,10 +53,14 @@ class CookieDomain(gym.Env):
 
         self.action_space = spaces.Discrete(5) # Left, Right, Up, Down, Interact(=> push button, eat cookie if possible)
         self.observation_space = spaces.Discrete(2) # (Room, interactable object)
-        self.history_length = 5
+        self.history_length = 15
         self.state_vector_size = self.observation_space.n*(self.history_length+1)
 
         self.state = None
+
+        # For rendering purposes
+        self.latest_action = None
+        self.actions = ['left', 'right', 'up', 'down', 'interact']
 
         # keep track of the nb cookies eaten for debugging purposes
         self.nb_cookies_eaten = 0
@@ -75,6 +82,7 @@ class CookieDomain(gym.Env):
 
         err_msg = f"{action} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
+        self.latest_action = action
         room, _ = self.state
         new_room = room
         reward = 0.0
@@ -107,13 +115,13 @@ class CookieDomain(gym.Env):
             elif self.cookie is not None and room == self.cookie:
                 self.button = self._get_new_button_pos()
                 self.cookie = None
-                reward = 1
+                reward = 3
                 self.nb_cookies_eaten += 1
 
         # If a step was taken in a good direction, the reward can be different.
         # It has to be seen if it matters how big this intermediate reward is.
         if _good_direction(room, new_room):
-            reward = 0.25
+            reward = -0.5
         obj = 0
         if new_room == self.button:
             obj = 1
@@ -122,6 +130,7 @@ class CookieDomain(gym.Env):
 
         self.state = new_room, obj
         done = (self.n_steps >= self.episode_length)
+        self.end_of_episode = done
         # if done and self.nb_cookies_eaten > 30:
         #     print(f'More than 30 cookies were eaten:{self.nb_cookies_eaten}')
         # if done:
@@ -153,4 +162,33 @@ class CookieDomain(gym.Env):
         return self._state()
 
     def render(self, mode=None):
-        pass
+        def _clear():
+            os.system('clear')
+        def _print_world():
+            top = [2]
+            bottom = [1,0,3]
+            agent = self.state[0]
+            if agent in top:
+                top = ['A']
+            elif agent == 1:
+                bottom = ['A', 0, 3]
+            elif agent == 0:
+                bottom = [1, 'A', 3]
+            elif agent == 3:
+                bottom = [1, 0, 'A']
+            if self.cookie is not None:
+                if self.cookie in top:
+                    top = ['C']
+                elif self.cookie in bottom:
+                    bottom[2] = 'C'
+
+            print(f'  |{top[0]}|')
+            print(f'|{bottom [0]}|{bottom[1]}|{bottom[2]}|')
+            #time.sleep(0.05)
+            print(f'Action:{self.actions[self.latest_action]}')
+            #time.sleep(0.25)
+            #_clear()
+            print('cookies eaten:', self.nb_cookies_eaten)
+        if mode == 'human':
+            _print_world()
+
