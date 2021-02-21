@@ -1,5 +1,6 @@
-numpy==1.20.1
-gym==0.18.0
-tqdm==4.56.2
+tensorflow==2.4.1
+numpy==1.19.5
 matplotlib==3.3.4
-tensorflow==1.14.0
+tqdm==4.56.2
+rl==3.0
+gym==0.18.0

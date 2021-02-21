@@ -24,6 +24,7 @@ De agent kan enkel dingen observeren in de kamer waar hij is.
 Kan de agent dan alles in één kamer zien of alleen wat op zijn positie staat?)
 """
 
+
 class CookieDomain(gym.Env):
     def __init__(self):
         '''
