@@ -2,6 +2,7 @@ import numpy as np
 import gym
 import envs
 import os
+import gym_two_rooms.envs
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -22,7 +23,8 @@ class Trainer:
 
         # self.ENV = 'CookieDomain-v0'
         # self.ENV = 'CartPole-v0'
-        self.ENV = 'WordsWorld-v0'
+        # self.ENV = 'WordsWorld-v0'
+        self.ENV = 'TwoRooms-v0'
 
         self.env = gym.make(self.ENV)
 
