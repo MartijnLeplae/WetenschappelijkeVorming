@@ -38,7 +38,7 @@ class TwoRoomsEnv(gym.Env):
         self.n_rooms = 2
         self.steps_taken = 0
         self.step_limit = 200  # Limit of the nb. of actions in one episode
-        self.episode_length = 10  # Nb of actions in one episode
+        self.episode_length = len(self.sequence)  # Nb of actions in one episode
         self.sequence = [round(rnd.random()) for _ in range(self.episode_length)]
         self.history_length = 5
 
@@ -48,6 +48,7 @@ class TwoRoomsEnv(gym.Env):
 
     def step(self, action):
         self.steps_taken += 1
+        done = self.steps_taken >= self.step_limit
         new_room = 0 if action == 0 else 1
         self.state.append(new_room)
 
@@ -58,10 +59,14 @@ class TwoRoomsEnv(gym.Env):
             reward = 1
             if len(self.sequence) == self.steps_taken:
                 reward = 5
+            return self._get_state_repr(), reward, done, {}
+
+        if ''.join(map(str, self.state)) in ''.join(map(str, self.sequence)):
+            reward = 1
         else:
             reward = -1
+        return self._get_state_repr(), reward, done, {}
 
-        done = self.steps_taken >= self.step_limit
         # self.current_hist_rep = list(self.history)
 
         # observation = (current room, last `history_length' nb. of  states)
