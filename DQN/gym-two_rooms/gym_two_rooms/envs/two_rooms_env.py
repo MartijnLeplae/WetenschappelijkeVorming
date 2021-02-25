@@ -38,8 +38,8 @@ class TwoRoomsEnv(gym.Env):
         self.n_rooms = 2
         self.steps_taken = 0
         self.step_limit = 200  # Limit of the nb. of actions in one episode
+        self.sequence = [round(rnd.random()) for _ in range(10)]
         self.episode_length = len(self.sequence)  # Nb of actions in one episode
-        self.sequence = [round(rnd.random()) for _ in range(self.episode_length)]
         self.history_length = 5
 
         self.observation_space = spaces.Discrete(self.history_length)  # Room
