@@ -18,8 +18,8 @@ class TwoRoomsEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
-        '''
-        Observation:
+        """
+        Observations
             Type: Discrete(1)
             Num     Observation               Range
             0       Room                      [0, 1]
@@ -32,47 +32,44 @@ class TwoRoomsEnv(gym.Env):
             Num   Action
             0     Go Left
             1     Go Right
-        '''
+        """
 
         self.state = []
         self.n_rooms = 2
         self.steps_taken = 0
-        self.step_limit = 200  # Limit of the nb. of actions in one episode
-        self.sequence = [round(rnd.random()) for _ in range(10)]
+        self.sequence = [1,1,1,0,1,0,1,1,1,1,0]
+        # self.sequence = [round(rnd.random()) for _ in range(10)]
         self.episode_length = len(self.sequence)  # Nb of actions in one episode
-        self.history_length = 5
+        self.history_length = 3
 
-        self.observation_space = spaces.Discrete(self.history_length)  # Room
+        self.observation_space = spaces.Discrete(self.history_length)
         self.action_space = spaces.Discrete(2)  # Left (1) or Right (2)
-        # self.history = [0 for _ in range(self.history_length)]
 
     def step(self, action):
         self.steps_taken += 1
-        done = self.steps_taken >= self.step_limit
+        done = self.steps_taken >= self.episode_length
         new_room = 0 if action == 0 else 1
         self.state.append(new_room)
 
         if len(self.state) > len(self.sequence):
             self.state = self.state[-len(self.sequence):]
 
-        if self.state == self.sequence[:len(self.state)]:
-            reward = 1
-            if len(self.sequence) == self.steps_taken:
+        if self.state == self.sequence[:len(self.state)]:  # Newly added room is correct
+            reward = 2
+            if len(self.sequence) == len(self.state):  # We've learned the sequence successfully
                 reward = 5
-            return self._get_state_repr(), reward, done, {}
-
-        if ''.join(map(str, self.state)) in ''.join(map(str, self.sequence)):
+        elif ''.join(map(str, self.state)) in ''.join(map(str, self.sequence)) and len(self.state) > self.history_length:
+            # Correct subsequence of the sequence to be learned, but not at the correct spot / in the big picture
             reward = 1
         else:
             reward = -1
+
         return self._get_state_repr(), reward, done, {}
 
         # self.current_hist_rep = list(self.history)
 
         # observation = (current room, last `history_length' nb. of  states)
         # s = new_room, self.history[-self.history_length:]
-
-        return self._get_state_repr(), reward, done, {}
 
     # This is the function where you decide what the agent (=neural network) can 'see'.
     # This can also include information about previous states (=history)
@@ -94,8 +91,10 @@ class TwoRoomsEnv(gym.Env):
         return self._get_state_repr()
 
     def render(self, mode='human'):
-        # TODO: add graphical representation
-        pass
+
+        print('Current: ' + ' '.join(map(str, self.state[:-1])), end=' ')
+        print('\u001b[31m' + str(self.state[-1]) + '\u001b[0m')  # Output last digit in the color red
+        print('Goal:    ' + ' '.join(map(str, self.sequence)))
 
     def close(self):
         pass

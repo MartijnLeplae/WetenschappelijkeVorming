@@ -1,0 +1,6 @@
+setup.py
+TwoRooms.egg-info/PKG-INFO
+TwoRooms.egg-info/SOURCES.txt
+TwoRooms.egg-info/dependency_links.txt
+TwoRooms.egg-info/requires.txt
+TwoRooms.egg-info/top_level.txt

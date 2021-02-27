@@ -13,18 +13,23 @@ from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
 
 from matplotlib import pyplot as plt
+import argparse
 
 
 class Trainer:
-    def __init__(self):
+    def __init__(self, env=None):
         self.N_EPISODES = 1500
         self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
-        # self.ENV = 'CookieDomain-v0'
-        # self.ENV = 'CartPole-v0'
-        # self.ENV = 'WordsWorld-v0'
-        self.ENV = 'TwoRooms-v0'
+        # Pass an environment to DQN_keras_rl.py with the '-e' or '--environment' flag
+        if env:
+            self.ENV = env
+        else:
+            # self.ENV = 'CookieDomain-v0'
+            # self.ENV = 'CartPole-v0'
+            # self.ENV = 'WordsWorld-v0'
+            self.ENV = 'TwoRooms-v0'
 
         self.env = gym.make(self.ENV)
 
@@ -49,7 +54,7 @@ class Trainer:
     def _build_model(self):
         model = Sequential()
         # Input Layer
-        model.add(Flatten(input_shape=(1,)+self.state_size))
+        model.add(Flatten(input_shape=(1,) + self.state_size))
         # Layer 1
         model.add(Dense(50))
         model.add(Activation('relu'))
@@ -73,11 +78,11 @@ class Trainer:
         #                               nb_steps=self.env.episode_length*(self.N_EPISODES+self.warmup_episodes)*0.7)
         # test_policy = EpsGreedyQPolicy(eps=0.05)
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
-                       memory=memory, nb_steps_warmup=self.warmup_episodes*self.env.episode_length,
-                       target_model_update=1e-2, policy=policy)
+                            memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
+                            target_model_update=1e-2, policy=policy)
         self.dqn.compile(Adam(lr=1e-3), metrics=['mae'])
-        out = self.dqn.fit(self.env, nb_steps=(self.N_EPISODES + self.warmup_episodes)*self.env.episode_length,
-                      visualize=False, verbose=1)
+        out = self.dqn.fit(self.env, nb_steps=(self.N_EPISODES + self.warmup_episodes) * self.env.episode_length,
+                           visualize=False, verbose=1)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
         return self.episode_reward
 
@@ -95,13 +100,20 @@ class Trainer:
         plt.ylabel('reward')
         step = 5
         plt.plot(np.arange(0, len(self.episode_reward), step),
-                    [self.episode_reward[i] for i in range(0,len(self.episode_reward),step)])
+                 [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
         plt.show()
 
 
-trainer = Trainer()
-trainer.start()
-trainer.test()
-trainer.plot()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-e', '--environment', type=str)
+    args = parser.parse_args()
 
-
+    if args.environment:
+        trainer = Trainer(args.environment)
+    else:
+        trainer = Trainer()
+    trainer = Trainer()
+    trainer.start()
+    trainer.test()
+    trainer.plot()
