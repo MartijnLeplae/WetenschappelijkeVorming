@@ -113,7 +113,6 @@ if __name__ == '__main__':
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
-    trainer = Trainer()
     trainer.start()
     trainer.test()
     trainer.plot()
