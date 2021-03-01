@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import envs
 import os
-import gym_two_rooms.envs
+# import gym_two_rooms.envs
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -18,7 +18,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 1500
+        self.N_EPISODES = 1000
         self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -28,8 +28,8 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            # self.ENV = 'WordsWorld-v0'
-            self.ENV = 'TwoRooms-v0'
+            self.ENV = 'WordsWorld-v0'
+            # self.ENV = 'TwoRooms-v0'
 
         self.env = gym.make(self.ENV)
 
@@ -51,15 +51,20 @@ class Trainer:
         # past n past observations in one state. (A way to make simple memory, it is also used in the examples of the atari games
         # where the window_length is 4 to account for acceleration etc)
 
+        self.name = 'Count+Interval:4-hotten-'  # replace with information about
+                                   # the experiment. (Hybrid:2 means hybrid BoW+history of 2)
+
+
+
     def _build_model(self):
         model = Sequential()
         # Input Layer
         model.add(Flatten(input_shape=(1,) + self.state_size))
         # Layer 1
-        model.add(Dense(50))
+        model.add(Dense(60))
         model.add(Activation('relu'))
         # Layer 2
-        model.add(Dense(50))
+        model.add(Dense(60))
         model.add(Activation('relu'))
         # # Layer 3
         # model.add(Dense(50))
@@ -71,11 +76,11 @@ class Trainer:
 
     def start(self):
         model = self._build_model()
-        memory = SequentialMemory(limit=10000, window_length=self.window_length)
-        policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
+        memory = SequentialMemory(limit=23000, window_length=self.window_length)
+        # policy = EpsGreedyQPolicy(eps=0.15)  # <- When not a lot of exploration is needed
         # When more exploration is needed -> : (more complex task)
-        # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0,
-        #                               nb_steps=self.env.episode_length*(self.N_EPISODES+self.warmup_episodes)*0.7)
+        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0,
+                                      nb_steps=self.env.episode_length*(self.N_EPISODES+self.warmup_episodes)*0.7)
         # test_policy = EpsGreedyQPolicy(eps=0.05)
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
@@ -87,7 +92,7 @@ class Trainer:
         return self.episode_reward
 
     def test(self):
-        self.dqn.test(self.env, nb_episodes=10, visualize=True)
+        self.dqn.test(self.env, nb_episodes=3, visualize=True)
 
     # Plot the reward/episode
     def plot(self, save=False):
@@ -101,6 +106,9 @@ class Trainer:
         step = 5
         plt.plot(np.arange(0, len(self.episode_reward), step),
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
+        if save:
+            dir = f'graphs/{self.ENV}/'
+            plt.savefig(f'{dir}{self.name}.png')
         plt.show()
 
 
@@ -113,7 +121,7 @@ if __name__ == '__main__':
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
-    trainer = Trainer()
+    #trainer = Trainer()
     trainer.start()
     trainer.test()
-    trainer.plot()
+    trainer.plot(save=False)

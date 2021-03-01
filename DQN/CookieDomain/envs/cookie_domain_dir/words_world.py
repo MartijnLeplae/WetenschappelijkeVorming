@@ -13,7 +13,7 @@ import numpy as np
 
 class WordsWorld(gym.Env):
     def __init__(self):
-        self.goal = 'helloworld'  # 'hottentottententententoonstelling' # the desired word to learn
+        self.goal = 'hottentottententententoonstelling' #'abbaabbaba' #'helloworld'  #  # the desired word to learn
 
         self.state = []
 
@@ -21,7 +21,23 @@ class WordsWorld(gym.Env):
         self.actions.sort()
         self.nb_goal = [self.actions.index(l) + 1 for l in self.goal]
 
-        self.repr_length = 3
+        # Toggle certain history reps on and off
+        self.add_states = False # add normal history of length n_prev_states?
+        self.add_most_used = False # add most used action?
+        self.add_counts = True # add a cumulative sum of used letters?
+        self.add_interval = True # add interval of history of n_prev_states with one state skipped?
+
+        self.n_prev_states = 4 # Nb of previous states to remember
+        # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
+        self.repr_length = 0
+        if self.add_states:
+            self.repr_length += self.n_prev_states
+        if self.add_counts:
+            self.repr_length += len(self.actions)
+        if self.add_most_used:
+            self.repr_length += 1
+        if self.add_interval:
+            self.repr_length += self.n_prev_states
 
         self.action_space = spaces.Discrete(len(self.actions))
         self.observation_space = spaces.Discrete(self.repr_length)
@@ -45,8 +61,8 @@ class WordsWorld(gym.Env):
 
         # Correct letter but not in the big picture e.g: goal = 'ababc' and the agent types 'abab->a'
         # then yes 'b' is followed by 'a' somewhere but there 'c' was needed
-        if len(self.state) > self.repr_length \
-                and self._word(self.state[-(self.repr_length + 1):]) in self._word(self.nb_goal):
+        if len(self.state) > self.n_prev_states \
+                and self._word(self.state[-(self.n_prev_states + 1):]) in self._word(self.nb_goal):
             reward = 1
         else:
             # Bad choice, wrong letter
@@ -63,13 +79,49 @@ class WordsWorld(gym.Env):
     # This is the function where you decide what the agent (=neural network) can 'see'.
     # This can also include information about previous states (=history)
     def _get_state_repr(self):
+        def get_count():
+            count = []
+            for i in range(1, len(self.actions)+1):
+                count.append(self.state.count(i))
+            return np.array(count)
+
+        def most_used():
+            count = get_count()
+            return np.array([np.argmax(np.array(count))+1])
+
+        def get_hist_interval():
+            interval = -2
+            hist = []
+            lim = max(-1, len(self.state)-self.n_prev_states*2)
+            for i in range(len(self.state)-1, lim, interval):
+                hist.append(self.state[i])
+            result = np.array([0] * (self.n_prev_states - len(hist)) + hist)
+            return result
+
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
-        if len(self.state) < self.repr_length:
-            return np.array([0] * (self.repr_length - len(self.state)) + self.state)
-        else:
-            return np.array(self.state[-self.repr_length:])
+        # 1. construct states vector
+        states = np.array([])
+        if self.add_states:
+            if len(self.state) < self.n_prev_states:
+                states = np.array([0] * (self.n_prev_states - len(self.state)) + self.state)
+            else:
+                states = np.array(self.state[-self.n_prev_states:])
+        # 2. Construct count vector
+        counts = np.array([])
+        if self.add_counts:
+            counts = get_count()
+        # 3. Construct most-used vector
+        mu = np.array([])
+        if self.add_most_used:
+            mu = np.array(most_used())
+        # 4. Construct interval vector
+        inter = np.array([])
+        if self.add_interval:
+            inter = get_hist_interval()
+        return np.concatenate([states, counts, mu, inter])
+
 
     def reset(self):
         self.state = []
