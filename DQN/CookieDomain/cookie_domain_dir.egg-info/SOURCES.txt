@@ -1,6 +1,0 @@
-setup.py
-cookie_domain_dir.egg-info/PKG-INFO
-cookie_domain_dir.egg-info/SOURCES.txt
-cookie_domain_dir.egg-info/dependency_links.txt
-cookie_domain_dir.egg-info/requires.txt
-cookie_domain_dir.egg-info/top_level.txt

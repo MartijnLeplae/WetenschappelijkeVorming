@@ -1,2 +1,0 @@
-from envs.cookie_domain_dir.cookie_domain import CookieDomain
-from envs.cookie_domain_dir.words_world import WordsWorld
