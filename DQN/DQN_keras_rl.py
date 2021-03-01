@@ -18,7 +18,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 1500
+        self.N_EPISODES = 500
         self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -28,8 +28,8 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            # self.ENV = 'WordsWorld-v0'
-            self.ENV = 'TwoRooms-v0'
+            self.ENV = 'WordsWorld-v0'
+            # self.ENV = 'TwoRooms-v0'
 
         self.env = gym.make(self.ENV)
 
@@ -50,6 +50,8 @@ class Trainer:
         self.window_length = 1  # Not really sure what this is, but I think it is a way to have combine
         # past n past observations in one state. (A way to make simple memory, it is also used in the examples of the atari games
         # where the window_length is 4 to account for acceleration etc)
+
+        self.name = self.env.get_name() # ask the environment for a string representations of the parameters
 
     def _build_model(self):
         model = Sequential()
@@ -101,6 +103,9 @@ class Trainer:
         step = 5
         plt.plot(np.arange(0, len(self.episode_reward), step),
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
+        if save:
+            dir = f'graphs/{self.ENV}/'
+            plt.savefig(f'{dir}{self.name}')
         plt.show()
 
 
@@ -113,7 +118,6 @@ if __name__ == '__main__':
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
-    trainer = Trainer()
     trainer.start()
     trainer.test()
-    trainer.plot()
+    trainer.plot(save=True)

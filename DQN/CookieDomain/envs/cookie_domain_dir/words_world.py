@@ -13,7 +13,7 @@ import numpy as np
 
 class WordsWorld(gym.Env):
     def __init__(self):
-        self.goal = 'hottentottententententoonstelling' #'abbaabbaba' #'helloworld'  #  # the desired word to learn
+        self.goal = 'abbaabbaba' #'hottentottententententoonstelling'  #'helloworld'  #  # the desired word to learn
 
         self.state = []
 
@@ -22,12 +22,12 @@ class WordsWorld(gym.Env):
         self.nb_goal = [self.actions.index(l) + 1 for l in self.goal]
 
         # Toggle certain history reps on and off
-        self.add_states = False # add normal history of length n_prev_states?
+        self.add_states = True # add normal history of length n_prev_states?
         self.add_most_used = False # add most used action?
-        self.add_counts = True # add a cumulative sum of used letters?
-        self.add_interval = True # add interval of history of n_prev_states with one state skipped?
+        self.add_counts = False # add a cumulative sum of used letters?
+        self.add_interval = False # add interval of history of n_prev_states with one state skipped?
 
-        self.n_prev_states = 4 # Nb of previous states to remember
+        self.n_prev_states = 6 # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
         self.repr_length = 0
         if self.add_states:
@@ -131,3 +131,16 @@ class WordsWorld(gym.Env):
     def render(self, mode=None):
         state = self._word(self.state)
         print(state[:-1] + '\u001b[1m' + state[-1] + '\u001b[0m')
+
+    def get_name(self):
+        name = ''
+        if self.add_states:
+            name += f'States:{self.n_prev_states}'
+        if self.add_interval:
+            name += f'Interval:{self.n_prev_states}'
+        if self.add_counts:
+            name += '+BoW'
+        if self.add_most_used:
+            name += '+mu'
+        name += '-' + self.goal
+        return name
