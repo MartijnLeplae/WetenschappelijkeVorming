@@ -18,7 +18,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 2
+        self.N_EPISODES = 2000
         self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -56,12 +56,14 @@ class Trainer:
         self.name = f"({self.N_EPISODES}){self.env.get_name()}"  # ask the environment for a string representation of
         # the parameters, also append the number of episodes to the front
 
+        self.total_nb_steps = (self.N_EPISODES + self.warmup_episodes) * self.env.episode_length
+
     def init_agent(self):
         model = self._build_model()
-        memory = SequentialMemory(limit=10000, window_length=self.window_length)
+        memory = SequentialMemory(limit=self.total_nb_steps, window_length=self.window_length)
         # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
         policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.2,
-                                      nb_steps=self.env.episode_length * (self.N_EPISODES + self.warmup_episodes) * 0.7)
+                                      nb_steps=self.total_nb_steps)
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy)
@@ -87,8 +89,7 @@ class Trainer:
 
     def start(self, save=False):
         self.init_agent()
-        out = self.dqn.fit(self.env, nb_steps=(self.N_EPISODES + self.warmup_episodes) * self.env.episode_length,
-                           visualize=False, verbose=1)
+        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=1)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
         if save:
             self.save_model()
@@ -136,5 +137,5 @@ if __name__ == '__main__':
     # trainer.load_model(f'models/{trainer.ENV}/States:3-231.h5')
     trainer.start(save=True)
     trainer.plot(save=True)
-    trainer.test()
+    # trainer.test()
 
