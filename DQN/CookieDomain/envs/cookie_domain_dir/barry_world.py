@@ -1,9 +1,8 @@
 import gym
 from gym import spaces
 import numpy as np
-import pygame as pg
 
-# colors
+# COLORS
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 BACKCOLOR = (91, 54, 13)
@@ -12,30 +11,61 @@ PINK = (255, 103, 253)
 GREEN = (0, 255, 0)
 BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
+# LOCATION VARIABLES (x-position of the elements)
+BARRY_START = 150
+BUTTONS = [100,200,300]
+BUCKET_POS = 400
+# OTHER VARS
+STEP_SIZE = 25 # 10 # How big are the steps of Barry?
+# DIMENSION VARIABLES
+WORLD_DIM = [500,500]
+BARRY_DIM = [10, 75]
+BUTTON_DIM = [25, 10]
+BUCKET_DIM = [75, 200]
+# COLOR VARIABLES
+WORLD_COLOR = WHITE
+BARRY_COLOR = PINK
+BUTTONS_COLOR = [BLUE, RED, GREEN]
+################
+CODE = '231' # The code barry has to learn
+# REWARD VARIABLES
+BASE = 0
+UNVALID_ACTION = -1
+WRONG_BUTTON = -2
+GOOD_BUTTON = 1
+CODE_COMPLETE = 6
 
 
+"""
+BarryWorld is a environment where Barry wants to fill a bucket of water.
+To do this he has to press buttons in a certain order. Barry can move around and can 
+press a button if he is close enough to it. 
+He can see this vector every step:
+    -> [delta_bucket1, delta_bucket2, delta_bucket3, 'extra information about last pressed buttons']
+    Where delta denotes the distance with Barry.
+    The extra information can be toggled in the constructor. For example the environment can give Barry
+    a vector with the last n pressed buttons.
+"""
 class BarryWorld(gym.Env):
     def __init__(self):
         ############ Graphical vars ###############
         self.graphics_initialised = False
         self.screen = None
         self.clock = None
-        self.btn_dim = [25,10]
-        self.barry_dim = [10, 100]
-        self.btn_col = [BLUE, RED, GREEN]
+        self.btn_dim = BUTTON_DIM
+        self.barry_dim = BARRY_DIM
+        self.btn_col = BUTTONS_COLOR
         self.barry_col = PINK
         self.has_pressed = False
-
-        self.dimensions = [500, 500]  # horizontal and vertical dimensions of the world
-        self.buttons = np.array([100, 200, 300])  # The x-positions of the buttons in the world
-        self.barry = 150  # The starting position of Barry
-        self.step_length = 10  # 25 # How big are the steps of Barry when going left or right?
-
+        self.dimensions = WORLD_DIM
+        self.buttons = np.array(BUTTONS)
+        self.barry = BARRY_START
+        self.step_length = STEP_SIZE
         self.bucket = 0
-        self.bucket_pos = 400
-        self.bucket_dim = [75, 200]
+        self.bucket_pos = BUCKET_POS
+        self.bucket_dim = BUCKET_DIM
         #############################################
-        self.code = '231'  # The code for a water-droplet
+        self.code = CODE
         self.int_code = [int(i) for i in list(self.code)]  # list with int representation of the code
 
         # Keeps track of the buttons pressed
@@ -46,12 +76,12 @@ class BarryWorld(gym.Env):
         # Toggle certain history reps on and off
         self.add_states = True  # add normal history of length n_prev_states?
         self.add_most_used = False  # add most used action?
-        self.add_counts = False  # add a cumulative sum of used letters?
+        self.add_counts = False  # add a Bag-off-words?
         self.add_interval = False  # add interval of history of n_prev_states with one state skipped?
 
         self.n_prev_states = 3  # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
-        self.repr_length = 3
+        self.repr_length = 3 # This is the minimal vector-length, Barry sees the distance with each button
         if self.add_states:
             self.repr_length += self.n_prev_states
         if self.add_counts:
@@ -66,11 +96,13 @@ class BarryWorld(gym.Env):
 
         self.steps = 0
 
-        self.episode_length = 50
+        self.episode_length = 100
 
     def step(self, action):
         self.has_pressed = False
-        reward = 0
+        if len(self.state) >= len(self.code):
+            self.state = []
+        reward = BASE
         # A. Barry moves around
         if action != 2:
             direction = -1 if action == 0 else 1
@@ -86,13 +118,14 @@ class BarryWorld(gym.Env):
             if closest <= 5:
                 self.has_pressed = True
                 self.state.append(dx.argmin()+1)
+                reward = self.reward_from_move()
                 if self.code_complete():
+                    reward = CODE_COMPLETE
                     # Put some water in the bucket
                     self.fill_bucket()
-                reward = self.reward_from_move()
             else:
                 # Barry, you cant press a button if you're not near one!
-                reward = -1
+                reward = UNVALID_ACTION
         self.steps += 1
         done = False if self.steps < self.episode_length else True
         return self._get_state_repr(), reward, done, {}
@@ -106,7 +139,7 @@ class BarryWorld(gym.Env):
     # Return the reward Barry gets assuming the last pressed button was appended to self.state
     def reward_from_move(self):
         max_r = 6
-        r = -1
+        r = WRONG_BUTTON
         c = self.int_code
         s = self.state
         if len(s) > len(c):
@@ -115,15 +148,10 @@ class BarryWorld(gym.Env):
             c = c[:len(s)]
         if c == s:
             # The max reward is scaled with how long the current, correct sequence is
-            r = max_r * len(c)/len(self.int_code)
+            r = GOOD_BUTTON #max_r * len(c)/len(self.int_code)
+        # if r == max_r:
+        #     r = 10
         return r
-
-    # # -> This function takes a list of ints as input and returns a string.
-    # # -> An int corresponds to an character as follows: int: i -> str: self.actions[i-1]
-    # # The ints don't correspond directly to an index because '0' is the empty character
-    # # and '0' is not a member of self.actions.
-    # def _word(self, lst):
-    #     return ''.join([self.actions[i - 1] for i in lst])
 
     # This is the function where you decide what the agent (=neural network) can 'see'.
     # This can also include information about previous states (=history)
@@ -176,16 +204,17 @@ class BarryWorld(gym.Env):
         return self.buttons - self.barry
 
     def fill_bucket(self):
-        self.bucket += 10
+        self.bucket += 30
 
     def reset(self):
         self.state = []
         self.steps = 0
-        self.barry = 150
+        self.barry = BARRY_START
         self.bucket = 0
         return self._get_state_repr()
 
     def render(self, mode=None):
+        import pygame as pg
         def draw_buttons():
             for i, btn in enumerate(self.buttons):
                 width = self.btn_dim[0]
@@ -206,7 +235,7 @@ class BarryWorld(gym.Env):
 
         def draw_info():
             myfont = pg.font.SysFont("Comic Sans MS", 25)
-            textsurface = myfont.render(f"Step: {self.steps}/{self.episode_length}", False, BLACK)
+            textsurface = myfont.render(f"Step: {self.steps}/{self.episode_length}", True, BLACK)
             location = [10, 10]
             self.screen.blit(textsurface, location)
 
@@ -220,6 +249,18 @@ class BarryWorld(gym.Env):
             pg.draw.rect(self.screen, BLACK, (xpos, ypos, width, height), 5)
             self.screen.fill(BLUE, (xpos, b_ypos, width, filled))
 
+        def draw_state():
+            myfont = pg.font.SysFont("Comic Sans MS", 25)
+            textsurface = myfont.render(f"State: {self.state[-len(self.code):]}", True, BLACK)
+            location = [150, 10]
+            self.screen.blit(textsurface, location)
+
+        def draw_code():
+            myfont = pg.font.SysFont("Comic Sans MS", 25)
+            textsurface = myfont.render(f"Code: {self.code}", True, BLACK)
+            location = [350, 10]
+            self.screen.blit(textsurface, location)
+
         if not self.graphics_initialised:
             pg.init()
             self.screen = pg.display.set_mode((self.dimensions[0], self.dimensions[1]))
@@ -231,6 +272,8 @@ class BarryWorld(gym.Env):
         draw_barry()
         draw_bucket()
         draw_info()
+        draw_state()
+        draw_code()
         pg.display.update()
         self.clock.tick(15)
 

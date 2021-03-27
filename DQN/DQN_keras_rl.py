@@ -18,8 +18,8 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 2000
-        self.STEPS_PER_EPISODE = 3
+        self.N_EPISODES = 1002
+        # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
         # Pass an environment to DQN_keras_rl.py with the '-e' or '--environment' flag
@@ -40,7 +40,7 @@ class Trainer:
         self.env.seed(123)
 
         self.nb_actions = self.env.action_space.n
-        self.state_size = (self.env.observation_space,) # (self.env.observation_space.n,)  #
+        self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
         # self.env.observation_space.shape
 
         self.dqn = None
@@ -60,13 +60,14 @@ class Trainer:
 
     def init_agent(self):
         model = self._build_model()
-        memory = SequentialMemory(limit=self.total_nb_steps, window_length=self.window_length)
+        memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
         # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.2,
+        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.1,
                                       nb_steps=self.total_nb_steps)
+        test_policy = EpsGreedyQPolicy(eps=0.05)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
-                            target_model_update=1e-2, policy=policy)
+                            target_model_update=1e-2, policy=policy, test_policy=test_policy)
         self.dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
     def _build_model(self):
@@ -79,9 +80,9 @@ class Trainer:
         # Layer 2
         model.add(Dense(50))
         model.add(Activation('relu'))
-        # # Layer 3
-        # model.add(Dense(50))
-        # model.add(Activation('relu'))
+        # Layer 3
+        model.add(Dense(50))
+        model.add(Activation('relu'))
         # Output Layer
         model.add(Dense(self.nb_actions))
         model.add(Activation('linear'))
@@ -96,7 +97,7 @@ class Trainer:
         return self.episode_reward
 
     def test(self):
-        self.dqn.test(self.env, nb_episodes=5, visualize=True)
+        self.dqn.test(self.env, nb_episodes=3, visualize=True)
 
     def save_model(self):
         dir = f'models/{self.ENV}/'
@@ -127,15 +128,22 @@ class Trainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--mode', choices=['train', 'test'], default='train')
     parser.add_argument('-e', '--environment', type=str)
+    parser.add_argument('-w', '--weights', type=str, default=None)
     args = parser.parse_args()
 
     if args.environment:
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
-    # trainer.load_model(f'models/{trainer.ENV}/States:3-231.h5')
-    trainer.start(save=True)
-    trainer.plot(save=True)
-    # trainer.test()
+    if args.mode == "train":
+        trainer.start(save=True)
+        trainer.plot(save=True)
+    elif args.mode == "test":
+        filepath = "(500)States:3-231.h5"
+        if args.weights:
+            filepath = args.weights
+        trainer.load_model(f'models/{trainer.ENV}/{filepath}')
+        trainer.test()
 
