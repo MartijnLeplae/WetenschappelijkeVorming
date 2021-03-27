@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '231' # The code barry has to learn
+CODE = '2323' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -275,7 +275,7 @@ class BarryWorld(gym.Env):
         draw_state()
         draw_code()
         pg.display.update()
-        self.clock.tick(15)
+        self.clock.tick(10) # How many FPS?
 
 
     def get_name(self):
