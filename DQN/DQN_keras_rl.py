@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import envs
 import os
-import gym_two_rooms.envs
+# import gym_two_rooms.envs
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -18,7 +18,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 2000
+        self.N_EPISODES = 2
         self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -79,9 +79,9 @@ class Trainer:
         # Layer 2
         model.add(Dense(50))
         model.add(Activation('relu'))
-        # # Layer 3
-        # model.add(Dense(50))
-        # model.add(Activation('relu'))
+        # Layer 3
+        model.add(Dense(50))
+        model.add(Activation('relu'))
         # Output Layer
         model.add(Dense(self.nb_actions))
         model.add(Activation('linear'))
