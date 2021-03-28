@@ -27,13 +27,20 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '13133' # The code barry has to learn
+CODE = '12122' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
 WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
+# HISTORY REPRESENTATION
+NB_PREV_STATES = 3
+N_STATES = True  # add normal history of length n_prev_states?
+MOST_USED = False  # add most used action?
+BOW = False  # add a Bag-off-words?
+INTERVAL = False  # add interval of history of n_prev_states with one state skipped?
+
 
 
 """
@@ -41,7 +48,7 @@ BarryWorld is a environment where Barry wants to fill a bucket of water.
 To do this he has to press buttons in a certain order. Barry can move around and can 
 press a button if he is close enough to it. 
 He can see this vector every step:
-    -> [delta_bucket1, delta_bucket2, delta_bucket3, 'extra information about last pressed buttons']
+    -> [delta_bucket1, delta_bucket2, (delta_bucket3), 'extra information about last pressed buttons']
     Where delta denotes the distance with Barry.
     The extra information can be toggled in the constructor. For example the environment can give Barry
     a vector with the last n pressed buttons.
@@ -73,26 +80,18 @@ class BarryWorld(gym.Env):
 
         self.actions = ['left', 'right', 'press']
 
-        # Toggle certain history reps on and off
-        self.add_states = False  # add normal history of length n_prev_states?
-        self.add_most_used = False  # add most used action?
-        self.add_counts = True  # add a Bag-off-words?
-        self.add_interval = False  # add interval of history of n_prev_states with one state skipped?
-
-        self.n_prev_states = 2  # Nb of previous states to remember
-        # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
-        self.repr_length = len(BUTTONS) # This is the minimal vector-length, Barry sees the distance with each button
-        if self.add_states:
-            self.repr_length += self.n_prev_states
-        if self.add_counts:
-            self.repr_length += len(BUTTONS)
-        if self.add_most_used:
-            self.repr_length += 1
-        if self.add_interval:
-            self.repr_length += self.n_prev_states
+        repr_length = len(BUTTONS)
+        if N_STATES:
+            repr_length += NB_PREV_STATES
+        if BOW:
+            repr_length += len(BUTTONS)
+        if MOST_USED:
+            repr_length += 1
+        if INTERVAL:
+            repr_length += NB_PREV_STATES
 
         self.action_space = spaces.Discrete(len(self.actions))
-        self.observation_space = self.repr_length
+        self.observation_space = repr_length
 
         self.steps = 0
 
@@ -147,57 +146,57 @@ class BarryWorld(gym.Env):
         elif len(c) > len(s):
             c = c[:len(s)]
         if c == s:
-            # The max reward is scaled with how long the current, correct sequence is
             r = GOOD_BUTTON #max_r * len(c)/len(self.int_code)
-        # if r == max_r:
-        #     r = 10
         return r
 
     # This is the function where you decide what the agent (=neural network) can 'see'.
     # This can also include information about previous states (=history)
     def _get_state_repr(self):
-        def get_count():
+        def get_bow():
             count = []
             for i in range(1, len(BUTTONS)+1):
                 count.append(self.state.count(i))
             return np.array(count)
 
         def most_used():
-            count = get_count()
+            count = get_bow()
             return np.array([np.argmax(np.array(count))+1])
 
         def get_hist_interval():
             interval = -2
             hist = []
-            lim = max(-1, len(self.state)-self.n_prev_states*2)
+            lim = max(-1, len(self.state)-NB_PREV_STATES*2)
             for i in range(len(self.state)-1, lim, interval):
                 hist.append(self.state[i])
-            result = np.array([0] * (self.n_prev_states - len(hist)) + hist)
+            result = np.array([0] * (NB_PREV_STATES - len(hist)) + hist)
             return result
+
+        def get_states():
+            if len(self.state) < NB_PREV_STATES:
+                return np.array([0] * (NB_PREV_STATES - len(self.state)) + self.state)
+            else:
+                return np.array(self.state[-NB_PREV_STATES:])
 
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
         # 1. construct states vector
         states = np.array([])
-        if self.add_states:
-            if len(self.state) < self.n_prev_states:
-                states = np.array([0] * (self.n_prev_states - len(self.state)) + self.state)
-            else:
-                states = np.array(self.state[-self.n_prev_states:])
+        if N_STATES:
+            states = get_states()
         # 2. Construct count vector
-        counts = np.array([])
-        if self.add_counts:
-            counts = get_count()
+        bow = np.array([])
+        if BOW:
+            bow = get_bow()
         # 3. Construct most-used vector
         mu = np.array([])
-        if self.add_most_used:
+        if MOST_USED:
             mu = np.array(most_used())
         # 4. Construct interval vector
         inter = np.array([])
-        if self.add_interval:
+        if INTERVAL:
             inter = get_hist_interval()
-        return np.concatenate([self.get_observation(), states, counts, mu, inter])
+        return np.concatenate([self.get_observation(), states, bow, mu, inter])
 
     # This methods returns what Barry sees in this state
     def get_observation(self):
@@ -280,13 +279,13 @@ class BarryWorld(gym.Env):
 
     def get_name(self):
         name = ''
-        if self.add_states:
-            name += f'States:{self.n_prev_states}'
-        if self.add_interval:
-            name += f'Interval:{self.n_prev_states}'
-        if self.add_counts:
+        if N_STATES:
+            name += f'States:{NB_PREV_STATES}'
+        if INTERVAL:
+            name += f'Interval:{NB_PREV_STATES}'
+        if BOW:
             name += '+BoW'
-        if self.add_most_used:
+        if MOST_USED:
             name += '+mu'
         name += '-' + self.code
         return name
