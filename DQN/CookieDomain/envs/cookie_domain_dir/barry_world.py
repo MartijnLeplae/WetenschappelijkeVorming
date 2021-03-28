@@ -74,18 +74,18 @@ class BarryWorld(gym.Env):
         self.actions = ['left', 'right', 'press']
 
         # Toggle certain history reps on and off
-        self.add_states = True  # add normal history of length n_prev_states?
+        self.add_states = False  # add normal history of length n_prev_states?
         self.add_most_used = False  # add most used action?
-        self.add_counts = False  # add a Bag-off-words?
+        self.add_counts = True  # add a Bag-off-words?
         self.add_interval = False  # add interval of history of n_prev_states with one state skipped?
 
-        self.n_prev_states = 3  # Nb of previous states to remember
+        self.n_prev_states = 2  # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
         self.repr_length = len(BUTTONS) # This is the minimal vector-length, Barry sees the distance with each button
         if self.add_states:
             self.repr_length += self.n_prev_states
         if self.add_counts:
-            self.repr_length += len(self.actions)
+            self.repr_length += len(BUTTONS)
         if self.add_most_used:
             self.repr_length += 1
         if self.add_interval:
