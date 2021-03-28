@@ -96,7 +96,7 @@ class BarryWorld(gym.Env):
 
         self.steps = 0
 
-        self.episode_length = 50
+        self.episode_length = 30
 
     def step(self, action):
         self.has_pressed = False
@@ -279,7 +279,7 @@ class BarryWorld(gym.Env):
 
 
     def get_name(self):
-        name = POLICY
+        name = POLICY + str(self.episode_length)
         if N_STATES:
             name += f'States:{NB_PREV_STATES}'
         if INTERVAL:
