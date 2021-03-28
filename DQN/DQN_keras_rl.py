@@ -12,6 +12,8 @@ from rl.agents.dqn import DQNAgent
 from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from rl.memory import SequentialMemory
 
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import argparse
 
