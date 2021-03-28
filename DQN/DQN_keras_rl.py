@@ -20,7 +20,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 3000
+        self.N_EPISODES = 2000
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 

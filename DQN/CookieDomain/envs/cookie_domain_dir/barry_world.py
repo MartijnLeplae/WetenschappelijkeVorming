@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1231' # The code barry has to learn
+CODE = '1312' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -74,9 +74,9 @@ class BarryWorld(gym.Env):
         self.actions = ['left', 'right', 'press']
 
         # Toggle certain history reps on and off
-        self.add_states = True  # add normal history of length n_prev_states?
+        self.add_states = False  # add normal history of length n_prev_states?
         self.add_most_used = False  # add most used action?
-        self.add_counts = False  # add a Bag-off-words?
+        self.add_counts = True  # add a Bag-off-words?
         self.add_interval = False  # add interval of history of n_prev_states with one state skipped?
 
         self.n_prev_states = 3  # Nb of previous states to remember
