@@ -12,11 +12,11 @@ GREEN = (0, 255, 0)
 BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
-BARRY_START = 150
-BUTTONS = [100,200,300]
+BARRY_START = 200
+BUTTONS = [100, 300]
 BUCKET_POS = 400
 # OTHER VARS
-STEP_SIZE = 25 # 10 # How big are the steps of Barry?
+STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
 WORLD_DIM = [500,500]
 BARRY_DIM = [10, 75]
@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1312' # The code barry has to learn
+CODE = '13133' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -74,14 +74,14 @@ class BarryWorld(gym.Env):
         self.actions = ['left', 'right', 'press']
 
         # Toggle certain history reps on and off
-        self.add_states = False  # add normal history of length n_prev_states?
+        self.add_states = True  # add normal history of length n_prev_states?
         self.add_most_used = False  # add most used action?
-        self.add_counts = True  # add a Bag-off-words?
+        self.add_counts = False  # add a Bag-off-words?
         self.add_interval = False  # add interval of history of n_prev_states with one state skipped?
 
         self.n_prev_states = 3  # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
-        self.repr_length = 3 # This is the minimal vector-length, Barry sees the distance with each button
+        self.repr_length = len(BUTTONS) # This is the minimal vector-length, Barry sees the distance with each button
         if self.add_states:
             self.repr_length += self.n_prev_states
         if self.add_counts:
@@ -96,7 +96,7 @@ class BarryWorld(gym.Env):
 
         self.steps = 0
 
-        self.episode_length = 100
+        self.episode_length = 50
 
     def step(self, action):
         self.has_pressed = False
@@ -158,7 +158,7 @@ class BarryWorld(gym.Env):
     def _get_state_repr(self):
         def get_count():
             count = []
-            for i in range(1, len(self.actions)+1):
+            for i in range(1, len(BUTTONS)+1):
                 count.append(self.state.count(i))
             return np.array(count)
 
