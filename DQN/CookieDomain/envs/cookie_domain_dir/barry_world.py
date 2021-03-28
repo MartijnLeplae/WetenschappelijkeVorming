@@ -35,7 +35,7 @@ WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
-NB_PREV_STATES = 0
+NB_PREV_STATES = 3
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
@@ -278,7 +278,7 @@ class BarryWorld(gym.Env):
 
 
     def get_name(self):
-        name = ''
+        name = 'epsgr:'
         if N_STATES:
             name += f'States:{NB_PREV_STATES}'
         if INTERVAL:
