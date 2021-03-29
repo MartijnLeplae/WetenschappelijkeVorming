@@ -1,0 +1,2 @@
+What is better? Linear Annealed or Epsilon Greedy
+-> In barryworld (and wordsworld) epsilon greedy seems to be make the learning faster.

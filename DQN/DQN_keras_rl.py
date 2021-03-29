@@ -63,7 +63,7 @@ class Trainer:
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
-        policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
+        policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
         # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.1, nb_steps=self.total_nb_steps)
         test_policy = EpsGreedyQPolicy(eps=0.1)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
