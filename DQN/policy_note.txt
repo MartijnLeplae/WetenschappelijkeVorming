@@ -1,2 +1,6 @@
 What is better? Linear Annealed or Epsilon Greedy
 -> In barryworld (and wordsworld) epsilon greedy seems to be make the learning faster.
+
+New consideration:
+-> normal linear anealation starts from epsilon 1.0 to 0.2
+-> other distributions such as 0.5->0.1 work better, maybe even better than just epsilon greedy

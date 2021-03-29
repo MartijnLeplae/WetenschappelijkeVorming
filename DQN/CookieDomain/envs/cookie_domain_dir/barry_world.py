@@ -12,8 +12,8 @@ GREEN = (0, 255, 0)
 BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
-BARRY_START = 200
-BUTTONS = [100, 300]
+BARRY_START = 0
+BUTTONS = [100, 200, 300]
 BUCKET_POS = 400
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '12122' # The code barry has to learn
+CODE = '123122' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -35,12 +35,12 @@ WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
-POLICY = ''
-NB_PREV_STATES = 2
+POLICY = 'linan5-1:' # this just is appended to the name_string, does not have effect otherwise
+NB_PREV_STATES = 3
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = True  # add a Bag-off-words?
-INTERVAL = False  # add interval of history of n_prev_states with one state skipped?
+BOW = False  # add a Bag-off-words?
+INTERVAL = True  # add interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
