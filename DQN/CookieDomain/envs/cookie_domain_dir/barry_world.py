@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '123122' # The code barry has to learn
+CODE = '1231232' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -35,12 +35,12 @@ WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
-POLICY = 'linan5-1:' # this just is appended to the name_string, does not have effect otherwise
-NB_PREV_STATES = 3
+POLICY = 'linan5-1:' # this is just appended to the name_string, does not have effect otherwise
+NB_PREV_STATES = 4
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = False  # add a Bag-off-words?
-INTERVAL = True  # add interval of history of n_prev_states with one state skipped?
+BOW = True  # add a Bag-off-words?
+INTERVAL = False  # add interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
