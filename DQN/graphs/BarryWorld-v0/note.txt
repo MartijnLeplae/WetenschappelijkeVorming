@@ -1,0 +1,14 @@
+Graphs
+------
+The name of the graphs gives info about how they were trained.
+(episodes):policy:episode_length:history_rep-sequence.png
+
+-> episodes = the number of episodes trianed
+-> policy = what epsilon policy was used?
+    -> epsgr = epsilon greedy 0.2
+    -> linan/linanX-Y = linear annealed 1.0->0.2/ linear annealed 0.A->0.B
+-> episode_length = How many steps can the agent take per episode
+-> history_rep = what history representation was used
+-> sequence = what was the desired sequence to learn
+  -> words_world = what string
+  -> barry_world = what order of buttons
