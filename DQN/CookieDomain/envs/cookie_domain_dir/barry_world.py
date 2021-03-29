@@ -121,6 +121,7 @@ class BarryWorld(gym.Env):
                 reward = self.reward_from_move()
                 if self.code_complete():
                     reward = CODE_COMPLETE
+                    self.state = [] # Start over
                     # Put some water in the bucket
                     self.fill_bucket()
             else:
@@ -139,7 +140,7 @@ class BarryWorld(gym.Env):
     # Return the reward Barry gets assuming the last pressed button was appended to self.state
     def reward_from_move(self):
         max_r = 6
-        r = WRONG_BUTTON
+        r = BASE
         c = self.int_code
         s = self.state
         if len(s) > len(c):
@@ -148,6 +149,9 @@ class BarryWorld(gym.Env):
             c = c[:len(s)]
         if c == s:
             r = GOOD_BUTTON #max_r * len(c)/len(self.int_code)
+        else:
+            self.state = []
+            r = WRONG_BUTTON
         return r
 
     # This is the function where you decide what the agent (=neural network) can 'see'.
@@ -275,7 +279,7 @@ class BarryWorld(gym.Env):
         draw_state()
         draw_code()
         pg.display.update()
-        self.clock.tick(10) # How many FPS?
+        self.clock.tick(7) # How many FPS?
 
 
     def get_name(self):
