@@ -35,13 +35,13 @@ WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
-POLICY = 'epsgr:'
+POLICY = 'linan-'
 NB_PREV_STATES = 3
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
 INTERVAL = True  # add interval of history of n_prev_states with one state skipped?
-
+EPISODE_LENGTH = 30
 
 
 """
@@ -96,7 +96,7 @@ class BarryWorld(gym.Env):
 
         self.steps = 0
 
-        self.episode_length = 30
+        self.episode_length = EPISODE_LENGTH
 
     def step(self, action):
         self.has_pressed = False
