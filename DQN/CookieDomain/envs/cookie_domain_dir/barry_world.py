@@ -39,8 +39,8 @@ POLICY = 'linan5-1:' # this just is appended to the name_string, does not have e
 NB_PREV_STATES = 3
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = False  # add a Bag-off-words?
-INTERVAL = True  # add interval of history of n_prev_states with one state skipped?
+BOW = True  # add a Bag-off-words?
+INTERVAL = False  # add interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
