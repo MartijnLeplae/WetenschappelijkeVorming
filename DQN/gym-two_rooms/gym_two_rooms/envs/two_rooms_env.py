@@ -50,6 +50,17 @@ class TwoRoomsEnv(gym.Env):
         self.observation_space = spaces.Discrete(self.history_length)
         self.action_space = spaces.Discrete(2)  # Left (1) or Right (2)
 
+    def set_user_params(self, params: dict) -> None:
+        """
+        This method sets the parameters given by
+        the user. The parameters that are set are
+        those that are tested in testFile.py
+        """
+        
+        assert params, "params variable can't be None"
+        for p, val in params.items():
+            setattr(self, p, val)
+
     def step(self, action):
         self.steps_taken += 1
         done = self.steps_taken >= self.episode_length
