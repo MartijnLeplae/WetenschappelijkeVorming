@@ -22,12 +22,12 @@ class WordsWorld(gym.Env):
         self.nb_goal = [self.actions.index(l) + 1 for l in self.goal]
 
         # Toggle certain history reps on and off
-        self.add_states = True # add normal history of length n_prev_states?
+        self.add_states = False # add normal history of length n_prev_states?
         self.add_most_used = False # add most used action?
         self.add_counts = False # add a cumulative sum of used letters?
-        self.add_interval = False # add interval of history of n_prev_states with one state skipped?
+        self.add_interval = True # add interval of history of n_prev_states with one state skipped?
 
-        self.n_prev_states = 6 # Nb of previous states to remember
+        self.n_prev_states = 4 # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
         self.repr_length = 0
         if self.add_states:

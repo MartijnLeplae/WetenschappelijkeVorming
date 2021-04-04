@@ -5,3 +5,6 @@ register(id='CookieDomain-v0',
 
 register(id='WordsWorld-v0',
          entry_point='envs.cookie_domain_dir:WordsWorld')
+
+register(id='BarryWorld-v0',
+         entry_point='envs.cookie_domain_dir:BarryWorld')
