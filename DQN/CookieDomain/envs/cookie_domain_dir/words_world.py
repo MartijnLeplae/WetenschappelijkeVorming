@@ -48,7 +48,7 @@ class WordsWorld(gym.Env):
             self.repr_length += self.n_prev_states
         self.observation_space = spaces.Discrete(self.repr_length)
 
-    def set_user_parameters(self, params: dict):
+    def set_user_parameters(self, **params: dict):
         """
         This method sets the parameters to values
         given by the user. The parameters that are set

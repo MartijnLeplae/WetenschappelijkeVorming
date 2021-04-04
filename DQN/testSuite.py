@@ -44,7 +44,7 @@ def handle_two_rooms(rooms_trainer: Trainer):
     for step_size in step_sizes:
         for toggle_value in toggle_values:
             rooms_trainer.env.reset()
-            rooms_trainer.env.set_user_parameters({'TOGGLE': toggle_value, 'step_size': step_size})
+            rooms_trainer.env.set_user_parameters(TOGGLE=toggle_value, step_size=step_size)
             try:
                 trainer.start(save=True)
                 trainer.plot(save=True)
@@ -61,8 +61,6 @@ def handle_words_world(words_trainer: Trainer):
         - add_interval
     """
 
-    params = ["add_states", "add_counts", "add_most_used", "add_interval"]
-
     add_states_vals = get_boolean_input("add_states")
     add_counts_vals = get_boolean_input("add_counts")
     add_most_used_vals = get_boolean_input("add_most_used")
@@ -72,11 +70,9 @@ def handle_words_world(words_trainer: Trainer):
             for most_used in add_most_used_vals:
                 for interval in add_interval_vals:
                     words_trainer.env.reset()
-                    vals = [state, count, most_used, interval]
-                    if not any(vals):  # The history repr must be non-empty
+                    if not any([state, count, most_used, interval]):  # The history repr must be non-empty
                         continue
-                    par_dic = {par: val for (par, val) in zip(params, vals)}
-                    words_trainer.env.set_user_parameters(par_dic)
+                    words_trainer.env.set_user_parameters(add_states=state, add_counts=count, add_most_used=most_used, add_interval=interval)
                     try:
                         words_trainer.start(save=True)
                         words_trainer.plot(save=True)
@@ -108,8 +104,8 @@ def handle_barry_world(barry_trainer: Trainer):
                     vals = [state, count, most_used, interval]
                     if not any(vals):  # The history repr must be non-empty
                         continue
-                    par_dic = {par: val for (par, val) in zip(params, vals)}
-                    barry_trainer.env.set_user_parameters(par_dic)
+                    # par_dic = {par: val for (par, val) in zip(params, vals)}  # using dict instead of **kwargs
+                    barry_trainer.env.set_user_parameters(N_STATES=state, BOW=count, MOST_USED=most_used, INTERVAL=interval)
                     try:
                         barry_trainer.start(save=True)
                         barry_trainer.plot(save=True)

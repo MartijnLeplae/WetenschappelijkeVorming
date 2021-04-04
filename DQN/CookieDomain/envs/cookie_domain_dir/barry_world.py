@@ -101,7 +101,7 @@ class BarryWorld(gym.Env):
         if INTERVAL:
             self.repr_length += NB_PREV_STATES
 
-    def set_user_parameters(self, params: dict):
+    def set_user_parameters(self, **params: dict):
         """
         This method sets the parameters to values
         given by the user. The parameters that are set
