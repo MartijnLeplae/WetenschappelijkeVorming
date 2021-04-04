@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import envs
 import os
-# import gym_two_rooms.envs
+import gym_two_rooms.envs
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -31,8 +31,8 @@ class Trainer:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
             # self.ENV = 'WordsWorld-v0'
-            # self.ENV = 'TwoRooms-v0'
-            self.ENV = 'BarryWorld-v0'
+            self.ENV = 'TwoRooms-v0'
+            # self.ENV = 'BarryWorld-v0'
 
         self.env = gym.make(self.ENV)
         if user_input:
@@ -149,7 +149,9 @@ if __name__ == '__main__':
         if args.weights:
             filepath = args.weights
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        trainer.load_model(f'{dir_path}/models/{trainer.ENV}/{filepath}')
+        path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
+        if os.path.isfile(path):
+            trainer.load_model(path)
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):

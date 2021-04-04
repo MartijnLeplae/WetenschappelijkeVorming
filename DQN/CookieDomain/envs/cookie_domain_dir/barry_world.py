@@ -81,22 +81,37 @@ class BarryWorld(gym.Env):
 
         self.actions = ['left', 'right', 'press']
 
-        repr_length = len(BUTTONS)
-        if N_STATES:
-            repr_length += NB_PREV_STATES
-        if BOW:
-            repr_length += len(BUTTONS)
-        if MOST_USED:
-            repr_length += 1
-        if INTERVAL:
-            repr_length += NB_PREV_STATES
+        self.repr_length = len(BUTTONS)
+        self.construct_repr_length()
 
         self.action_space = spaces.Discrete(len(self.actions))
-        self.observation_space = repr_length
+        self.observation_space = self.repr_length
 
         self.steps = 0
 
         self.episode_length = EPISODE_LENGTH
+
+    def construct_repr_length(self):
+        if N_STATES:
+            self.repr_length += NB_PREV_STATES
+        if BOW:
+            self.repr_length += len(BUTTONS)
+        if MOST_USED:
+            self.repr_length += 1
+        if INTERVAL:
+            self.repr_length += NB_PREV_STATES
+
+    def set_user_parameters(self, params: dict):
+        """
+        This method sets the parameters to values
+        given by the user. The parameters that are set
+        are those used by testSuite.py.
+        """
+
+        assert params, "params variable can't be None"
+        for p, val in params.items():
+            setattr(self, p, val)
+        self.construct_repr_length()
 
     def step(self, action):
         self.has_pressed = False
