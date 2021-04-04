@@ -32,7 +32,6 @@ class WordsWorld(gym.Env):
         self.repr_length = 0
         self.construct_repr_length()
         self.action_space = spaces.Discrete(len(self.actions))
-        self.observation_space = spaces.Discrete(self.repr_length)
 
         self.steps = 0
 
@@ -47,6 +46,7 @@ class WordsWorld(gym.Env):
             self.repr_length += 1
         if self.add_interval:
             self.repr_length += self.n_prev_states
+        self.observation_space = spaces.Discrete(self.repr_length)
 
     def set_user_parameters(self, params: dict):
         """

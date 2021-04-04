@@ -14,9 +14,12 @@ should implement the method set_user_parameters.
 """
 
 
-def get_input(name):
+def get_input(name, floats=False):
     print(f'Enter NUMERAL inputs for {name} you want to check, separated by spaces.')
-    lower, upper, step = map(float, input('Input form: range(<LOWER>, <UPPER>, <STEP-SIZE>) ').split()[:3])
+    if floats:
+        lower, upper, step = map(float, input('Input form: range(<LOWER>, <UPPER>, <STEP-SIZE>) ').split()[:3])
+    else:
+        lower, upper, step = map(int, input('Input form: range(<LOWER>, <UPPER>, <STEP-SIZE>) ').split()[:3])
     return [x for x in arange(lower, upper, step)]
 
 
@@ -35,14 +38,18 @@ def handle_two_rooms(rooms_trainer: Trainer):
         - step size
     """
 
-    toggle_values = get_input("toggle values")
-    step_sizes = get_input("step sizes")
+    toggle_values = get_input("toggle values", floats=True)
+    step_sizes = get_input("step sizes", floats=False)
+    assert 0 not in step_sizes, "Step size can't be 0"
     for step_size in step_sizes:
         for toggle_value in toggle_values:
             rooms_trainer.env.reset()
             rooms_trainer.env.set_user_parameters({'TOGGLE': toggle_value, 'step_size': step_size})
-            trainer.start(save=True)
-            trainer.plot(save=True)
+            try:
+                trainer.start(save=True)
+                trainer.plot(save=True)
+            except ValueError:
+                continue
 
 
 def handle_words_world(words_trainer: Trainer):
@@ -56,7 +63,7 @@ def handle_words_world(words_trainer: Trainer):
 
     params = ["add_states", "add_counts", "add_most_used", "add_interval"]
 
-    add_states_vals = get_boolean_input("add_state")
+    add_states_vals = get_boolean_input("add_states")
     add_counts_vals = get_boolean_input("add_counts")
     add_most_used_vals = get_boolean_input("add_most_used")
     add_interval_vals = get_boolean_input("add_interval")
@@ -66,10 +73,16 @@ def handle_words_world(words_trainer: Trainer):
                 for interval in add_interval_vals:
                     words_trainer.env.reset()
                     vals = [state, count, most_used, interval]
+                    if not any(vals):  # The history repr must be non-empty
+                        continue
                     par_dic = {par: val for (par, val) in zip(params, vals)}
                     words_trainer.env.set_user_parameters(par_dic)
-                    words_trainer.start(save=True)
-                    words_trainer.plot(save=True)
+                    try:
+                        words_trainer.start(save=True)
+                        words_trainer.plot(save=True)
+                    except ValueError as v:
+                        print(v)
+                        continue
 
 
 def handle_barry_world(barry_trainer: Trainer):
@@ -93,10 +106,15 @@ def handle_barry_world(barry_trainer: Trainer):
                 for interval in INTERVAL_vals:
                     barry_trainer.env.reset()
                     vals = [state, count, most_used, interval]
+                    if not any(vals):  # The history repr must be non-empty
+                        continue
                     par_dic = {par: val for (par, val) in zip(params, vals)}
                     barry_trainer.env.set_user_parameters(par_dic)
-                    barry_trainer.start(save=True)
-                    barry_trainer.plot(save=True)
+                    try:
+                        barry_trainer.start(save=True)
+                        barry_trainer.plot(save=True)
+                    except ValueError:
+                        continue
 
 
 def handle_cookie_domain(cookie_trainer: Trainer):
@@ -105,14 +123,15 @@ def handle_cookie_domain(cookie_trainer: Trainer):
 
 
 if __name__ == '__main__':
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0']
+    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0']
+    # CookieDomain-v0 doesn't yet have adjustable parameters
     possible_modes = ['train', 'test']
     possible_envs_choices = '\n'.join([f"({possible_envs.index(env)}) {env}" for env in possible_envs])
     env_index = int(input('Index of environment to train in:\n' + possible_envs_choices + '\n'))
     env = possible_envs[env_index]
     trainer = Trainer(env)
 
-    mode_index = int(input('Do you want to train (0) or test (1) the agent? '))
+    mode_index = int(input('Do you want to train (0) or test (1) the agent?\n'))
     mode = possible_modes[mode_index]
     if mode == "train":
         if env == "TwoRooms-v0":
@@ -121,13 +140,9 @@ if __name__ == '__main__':
             handle_words_world(trainer)
         elif env == "BarryWorld-v0":
             handle_barry_world(trainer)
-
-    if mode == "train":
-        trainer.start(save=True)
-        trainer.plot(save=True)
     elif mode == "test":
         filepath = "(500)States:3-231.h5"
-        weights = input('Name of .h5-weights file: (leave empty if none) ')
+        weights = input('Name of .h5-weights file: (leave empty if none)\n')
         if weights:
             filepath = weights
         dir_path = os.path.dirname(os.path.realpath(__file__))
