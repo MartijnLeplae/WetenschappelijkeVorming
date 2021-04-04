@@ -30,8 +30,8 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            # self.ENV = 'WordsWorld-v0'
-            self.ENV = 'TwoRooms-v0'
+            self.ENV = 'WordsWorld-v0'
+            # self.ENV = 'TwoRooms-v0'
             # self.ENV = 'BarryWorld-v0'
 
         self.env = gym.make(self.ENV)
@@ -44,7 +44,10 @@ class Trainer:
         self.env.seed(123)
 
         self.nb_actions = self.env.action_space.n
-        self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        if type(self.env.observation_space) == int:
+            self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        else:
+            self.state_size = (self.env.observation_space.n,)
         # self.env.observation_space.shape
 
         self.dqn = None
