@@ -1,3 +1,6 @@
+import math
+from collections import Counter
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -37,10 +40,12 @@ class TwoRoomsEnv(gym.Env):
         self.state = []
         self.n_rooms = 2
         self.steps_taken = 0
-        self.sequence = [1,1,1,0,1,0,1,1,1,1,0]
-        # self.sequence = [round(rnd.random()) for _ in range(10)]
+        # self.sequence = [1,1,1,0,1,0,1,1,1,1,0]  # Example sequence with repeating subsequence
+        self.sequence = [round(rnd.random()) for _ in range(10)]
         self.episode_length = len(self.sequence)  # Nb of actions in one episode
         self.history_length = 3
+        self.TOGGLE = 1
+        self.step_size = 1
 
         self.observation_space = spaces.Discrete(self.history_length)
         self.action_space = spaces.Discrete(2)  # Left (1) or Right (2)
@@ -58,43 +63,72 @@ class TwoRoomsEnv(gym.Env):
             reward = 2
             if len(self.sequence) == len(self.state):  # We've learned the sequence successfully
                 reward = 5
-        elif ''.join(map(str, self.state)) in ''.join(map(str, self.sequence)) and len(self.state) > self.history_length:
+        elif ''.join(map(str, self.state)) in ''.join(map(str, self.sequence)) and len(
+                self.state) > self.history_length:
             # Correct subsequence of the sequence to be learned, but not at the correct spot / in the big picture
             reward = 1
         else:
             reward = -1
 
-        return self._get_state_repr(), reward, done, {}
-
-        # self.current_hist_rep = list(self.history)
-
-        # observation = (current room, last `history_length' nb. of  states)
-        # s = new_room, self.history[-self.history_length:]
+        return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
     # This is the function where you decide what the agent (=neural network) can 'see'.
     # This can also include information about previous states (=history)
-    def _get_state_repr(self):
+    """ 
+    @param: slider: parameter ∈ [0,1]:
+        0: state representation is done using usual state memorisation
+        1: state representation is done using bag of words
+        otherwise: 
+            hybrid representation: slider represents the percentage of the representation that is given in a bag of words
+    @param: step: parameter to specify how many states should be left in-between the sampled history states
+    """
+
+    def _get_state_repr(self, slider=0.0, step=1):
+        if slider > 0:
+            assert self.history_length >= self.n_rooms
+
+        # Take last `history_length' states; equal to self.state if history_length > len(self.state)
+        # And take step parameter into account
+        state_slice = self.state[-(self.history_length * step)::step]
+
+        ratio = math.floor(slider * len(state_slice))
+        bag_part = state_slice[:ratio]
+        counter = Counter(bag_part)
+        bag_of_words = [counter[i] for i in range(self.n_rooms)]
+        self.bag_ratio = len(bag_of_words)
+
+        zeros = [0] * (self.history_length - len(state_slice) - len(bag_of_words))
+
+        states = state_slice[-(self.history_length - len(bag_of_words)):]
+        self.state_ratio = len(states)
+
+        return np.array(bag_of_words + zeros + states)
+
+        # Old version
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
-        if len(self.state) < self.history_length:
-            return np.array([0]*(self.history_length-len(self.state)) + self.state)
-        else:
-            return np.array(self.state[-self.history_length:])
+        # if len(self.state) < self.history_length:
+        #     return np.array([0]*(self.history_length-len(self.state)) + self.state)
+        # else:
+        #     return np.array(self.state[-self.history_length:])
 
     def reset(self):
         self.steps_taken = 0
         self.state = []
-        # self.history = [0 for _ in range(self.history_length)]
-        # self.current_hist_rep = list(self.history)
 
-        return self._get_state_repr()
+        return self._get_state_repr(self.TOGGLE)
 
     def render(self, mode='human'):
-
         print('Current: ' + ' '.join(map(str, self.state[:-1])), end=' ')
         print('\u001b[31m' + str(self.state[-1]) + '\u001b[0m')  # Output last digit in the color red
-        print('Goal:    ' + ' '.join(map(str, self.sequence)))
+        if self.steps_taken == self.episode_length:
+            print('Goal:    ' + ' '.join(map(str, self.sequence)))
 
     def close(self):
         pass
+
+    def get_name(self):
+        state_ratio = math.floor(self.TOGGLE * self.history_length)
+        bag_ratio = self.history_length - state_ratio
+        return f'Toggle:{self.TOGGLE}-States:{state_ratio}-BoW:{bag_ratio}-StepSize:{self.step_size}.png'

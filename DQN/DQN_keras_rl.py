@@ -104,8 +104,8 @@ class Trainer:
         plt.plot(np.arange(0, len(self.episode_reward), step),
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
         if save:
-            dir = f'graphs/{self.ENV}/'
-            plt.savefig(f'{dir}{self.name}')
+            directory = f'graphs/{self.ENV}/'
+            plt.savefig(f'{directory}{self.name}')
         plt.show()
 
 
