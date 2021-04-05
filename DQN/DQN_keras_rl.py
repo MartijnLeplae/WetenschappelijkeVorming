@@ -30,9 +30,10 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            self.ENV = 'WordsWorld-v0'
+            # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
             # self.ENV = 'BarryWorld-v0'
+            self.ENV = 'TreasureMap-v0'
 
         self.env = gym.make(self.ENV)
         if user_input:
@@ -134,7 +135,7 @@ class Trainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0']
+    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0', 'TreasureMap-v0']
     parser.add_argument('-m', '--mode', choices=['train', 'test'], default='train')
     parser.add_argument('-e', '--environment', choices=possible_envs, type=str)
     parser.add_argument('-w', '--weights', type=str, default=None)
