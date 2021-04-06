@@ -12,11 +12,15 @@ LEFT, RIGHT, UP, DOWN, INTERACT, RESET = 0, 1, 2, 3, 4, 5
 # map rooms to corresponding numbers, too
 TOP_ROOM, LEFT_ROOM, CENTER_ROOM, RIGHT_ROOM, BOTTOM_ROOM = 0, 1, 2, 3, 4
 
+# Variable names for the items:
+TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY = 'treasure', 'guide', 'map', 'equipment', 'jewelry'
+
 INVALID_ACTION = -2
 MOVE = 0
 ACQUIRED_ITEM = 2
 NEUTRAL_ACTION = 0
-SOLD_TREASURE = 8
+EFFICIENTLY_SOLD_TREASURE = 5
+INEFFICIENTLY_SOLD_TREASURE = 4
 RESET_PENALTY = -4
 
 
@@ -62,14 +66,16 @@ class TreasureMapEnv(gym.Env):
         self.steps_taken = 0
         self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
         self.sequence2 = [RIGHT_ROOM, TOP_ROOM, BOTTOM_ROOM]
-        self.episode_length = 75  # len(self.sequence)  # Nb of actions in one episode
+        # Ideally, the agent would only need to take 3 actions to sell a treasure.
+        # + training redundancy -> max 6 actions?
+        self.episode_length = 6  # len(self.sequence)  # Nb of actions in one episode
         self.history_length = 20
         self.repr_length = 4
         self.TOGGLE = 0
         self.step_size = 1
 
-        self.room = CENTER_ROOM
-        self.acquired_items = ['map']  # Keep a list of the items the agent has collected thus far
+        self.current_room = CENTER_ROOM
+        self.acquired_items = [MAP]  # Keep a list of the items the agent has collected thus far
 
         self.observation_space = spaces.Discrete(self.history_length)
         self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
@@ -88,8 +94,9 @@ class TreasureMapEnv(gym.Env):
 
     def step(self, action):
         self.steps_taken += 1
-        done = self.steps_taken >= self.episode_length
-        room = self.room
+        # done = self.steps_taken >= self.episode_length
+        done = JEWELRY in self.acquired_items
+        room = self.current_room
 
         new_room = 0
         reward = 0
@@ -102,7 +109,7 @@ class TreasureMapEnv(gym.Env):
                 new_room = room
             elif room == CENTER_ROOM:
                 new_room = LEFT_ROOM
-            elif room == 3:
+            elif room == RIGHT_ROOM:
                 new_room = CENTER_ROOM
         elif action == RIGHT:
             reward = MOVE
@@ -121,7 +128,7 @@ class TreasureMapEnv(gym.Env):
             elif room == CENTER_ROOM:
                 new_room = TOP_ROOM
             elif room == BOTTOM_ROOM:
-                new_room = TOP_ROOM
+                new_room = CENTER_ROOM
         elif action == DOWN:
             reward = MOVE
             if room not in [TOP_ROOM, CENTER_ROOM]:
@@ -133,51 +140,67 @@ class TreasureMapEnv(gym.Env):
                 new_room = BOTTOM_ROOM
         elif action == INTERACT:
             if room == TOP_ROOM:  # Treasure room
-                if 'guide' in self.acquired_items or 'equipment' in self.acquired_items:
-                    if 'treasure' not in self.acquired_items:
-                        self.acquired_items.append('treasure')
+                if GUIDE in self.acquired_items or EQUIPMENT in self.acquired_items:
+                    if TREASURE not in self.acquired_items:
+                        self.acquired_items.append(TREASURE)
                         reward = ACQUIRED_ITEM
                     else:
-                        reward = INVALID_ACTION
+                        reward = NEUTRAL_ACTION
                 else:
                     reward = INVALID_ACTION
             elif room == LEFT_ROOM:  # Guide room
                 # Agent starts off with map in its self.acquired_items.
-                if 'guide' not in self.acquired_items:
-                    if 'equipment' not in self.acquired_items:
+                if GUIDE not in self.acquired_items:
+                    if EQUIPMENT not in self.acquired_items:  # has neither GUIDE nor EQUIPMENT
                         reward = ACQUIRED_ITEM
                     else:
+                        # already has EQUIPMENT, but not GUIDE
+                        # Obtaining GUIDE when already having EQUIPMENT is not efficient
                         reward = NEUTRAL_ACTION
-                    self.acquired_items.append('guide')
+                    self.acquired_items.append(GUIDE)
                 else:
                     reward = INVALID_ACTION
             elif room == CENTER_ROOM:  # Map room, agent starts off with map in its self.acquired_items.
-                reward = NEUTRAL_ACTION
+                reward = INVALID_ACTION
             elif room == RIGHT_ROOM:  # Equipment room, agent starts off with map in its self.acquired_items.
-                if 'equipment' not in self.acquired_items:
-                    if 'guide' not in self.acquired_items:
+                if EQUIPMENT not in self.acquired_items:
+                    if GUIDE not in self.acquired_items:
                         reward = ACQUIRED_ITEM
                     else:
                         reward = NEUTRAL_ACTION
-                    self.acquired_items.append('equipment')
+                    self.acquired_items.append(EQUIPMENT)
                 else:
                     reward = INVALID_ACTION
             elif room == BOTTOM_ROOM:  # Jewelry room
-                if ('guide' in self.acquired_items or 'equipment' in self.acquired_items) and \
-                        'jewelry' not in self.acquired_items:
-                    self.acquired_items.append('jewelry')
-                    reward = SOLD_TREASURE
-                else:
+                if bool(GUIDE in self.acquired_items) ^ bool(EQUIPMENT in self.acquired_items):
+                    # n.b.: ^ is the XOR operator for booleans
+                    if TREASURE not in self.acquired_items:
+                        # No treasure to sell!
+                        reward = INVALID_ACTION
+                    else:
+                        # Reward efficient decisions (i.e. only acquiring either EQUIPMENT or GUIDE)
+                        reward = EFFICIENTLY_SOLD_TREASURE
+                        self.acquired_items.append(TREASURE)
+                elif GUIDE in self.acquired_items and EQUIPMENT in self.acquired_items:
+                    if TREASURE not in self.acquired_items:
+                        # No treasure to sell!
+                        reward = INVALID_ACTION
+                    else:
+                        # Sold treasure, but in an inefficient manner
+                        reward = INEFFICIENTLY_SOLD_TREASURE
+                        # Treasure can only be found with EQUIPMENT or GUIDE
+                        self.acquired_items.append(TREASURE)
+                else:  # Hasn't acquired EQUIPMENT nor GUIDE
                     reward = INVALID_ACTION
         elif action == RESET:
             reward = RESET_PENALTY
             self.reset()
 
         self.state.append(new_room)
-        self.room = new_room
+        self.current_room = new_room
 
-        if len(self.state) > len(self.sequence):
-            self.state = self.state[-len(self.sequence):]
+        # if len(self.state) > len(self.sequence):
+        #     self.state = self.state[-len(self.sequence):]
 
         return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
@@ -225,7 +248,7 @@ class TreasureMapEnv(gym.Env):
     def reset(self):
         self.steps_taken = 0
         self.state = []
-        self.acquired_items = ['map']
+        self.acquired_items = [MAP]
 
         return self._get_state_repr(self.TOGGLE)
 

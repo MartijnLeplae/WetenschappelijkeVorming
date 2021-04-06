@@ -1,21 +1,19 @@
-import numpy as np
-import gym
-import envs
+import argparse
 import os
-import gym_two_rooms.envs
+from pathlib import Path
 
-from tensorflow.keras.models import Sequential
+import gym
+import matplotlib
+import numpy as np
+from matplotlib import pyplot as plt
+from rl.agents.dqn import DQNAgent
+from rl.memory import SequentialMemory
+from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from tensorflow.keras.layers import Dense, Activation, Flatten
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
-from rl.agents.dqn import DQNAgent
-from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
-from rl.memory import SequentialMemory
-
-import matplotlib
 matplotlib.use('Agg')
-from matplotlib import pyplot as plt
-import argparse
 
 
 class Trainer:
@@ -23,6 +21,7 @@ class Trainer:
         self.N_EPISODES = 3000
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
+        dir_path = os.path.dirname(os.path.realpath(__file__))
 
         # Pass an environment to DQN_keras_rl.py with the '-e' or '--environment' flag
         if env:
@@ -32,10 +31,17 @@ class Trainer:
             # self.ENV = 'CartPole-v0'
             # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
-            # self.ENV = 'BarryWorld-v0'
-            self.ENV = 'TreasureMap-v0'
+            self.ENV = 'BarryWorld-v0'
+            # self.ENV = 'TreasureMap-v0'
 
+        # try:
         self.env = gym.make(self.ENV)
+        # except gym.error.UnregisteredEnv as e:
+        # print(f'Environment {e} has not been installed yet. \nReinstalling known environments...')
+        # os.system('pip install -e gym-two_rooms/')
+        # os.system('pip install -e CookieDomain/')
+        # self.env = gym.make(self.ENV)
+
         if user_input:
             self.env.set_user_params(user_input)
 
@@ -68,9 +74,10 @@ class Trainer:
 
     def init_agent(self):
         model = self._build_model()
-        memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
+        memory = SequentialMemory(limit=int(self.total_nb_steps * 0.7), window_length=self.window_length)
         # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1, nb_steps=self.total_nb_steps)
+        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1,
+                                      nb_steps=self.total_nb_steps)
         test_policy = EpsGreedyQPolicy(eps=0.2)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
@@ -141,6 +148,9 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--weights', type=str, default=None)
     args = parser.parse_args()
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(dir_path)
+
     if args.environment:
         trainer = Trainer(args.environment)
     else:
@@ -152,7 +162,6 @@ if __name__ == '__main__':
         filepath = "(500)States:3-231.h5"
         if args.weights:
             filepath = args.weights
-        dir_path = os.path.dirname(os.path.realpath(__file__))
         path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
         if os.path.isfile(path):
             trainer.load_model(path)
@@ -160,4 +169,3 @@ if __name__ == '__main__':
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
         # python3 DQN_keras_rl.py -e BarryWorld-v0 -m test -w '(500)States:3-231.h5'
-
