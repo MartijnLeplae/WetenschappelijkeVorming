@@ -1,5 +1,6 @@
 import math
 from collections import Counter
+from datetime import datetime
 
 import gym
 from gym import spaces
@@ -19,9 +20,14 @@ INVALID_ACTION = -2
 MOVE = 0
 ACQUIRED_ITEM = 2
 NEUTRAL_ACTION = 0
-EFFICIENTLY_SOLD_TREASURE = 5
+EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
-RESET_PENALTY = -4
+RESET_PENALTY = -2
+
+
+# TODO
+#  try without reset action
+#  assign smaller penalty to invalid action as opposed to an invalid movement, -1 for example
 
 
 class TreasureMapEnv(gym.Env):
@@ -67,10 +73,9 @@ class TreasureMapEnv(gym.Env):
         self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
         self.sequence2 = [RIGHT_ROOM, TOP_ROOM, BOTTOM_ROOM]
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        # + training redundancy -> max 6 actions?
-        self.episode_length = 6  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 75  # 75  # len(self.sequence)  # Nb of actions in one episode
         self.history_length = 20
-        self.repr_length = 4
+        self.repr_length = 8
         self.TOGGLE = 0
         self.step_size = 1
 
@@ -79,7 +84,8 @@ class TreasureMapEnv(gym.Env):
 
         self.observation_space = spaces.Discrete(self.history_length)
         self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
-        self.action_space = spaces.Discrete(6)  # move left, right, up, down; interact or reset
+        # self.actions = ['left', 'right', 'up', 'down', 'interact']
+        self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
 
     def set_user_parameters(self, **params: dict):
         """
@@ -94,8 +100,8 @@ class TreasureMapEnv(gym.Env):
 
     def step(self, action):
         self.steps_taken += 1
-        # done = self.steps_taken >= self.episode_length
-        done = JEWELRY in self.acquired_items
+        done = self.steps_taken >= self.episode_length
+        # done = JEWELRY in self.acquired_items
         room = self.current_room
 
         new_room = 0
@@ -181,6 +187,7 @@ class TreasureMapEnv(gym.Env):
                         # Reward efficient decisions (i.e. only acquiring either EQUIPMENT or GUIDE)
                         reward = EFFICIENTLY_SOLD_TREASURE
                         self.acquired_items.append(TREASURE)
+                        # done = True
                 elif GUIDE in self.acquired_items and EQUIPMENT in self.acquired_items:
                     if TREASURE not in self.acquired_items:
                         # No treasure to sell!
@@ -190,6 +197,7 @@ class TreasureMapEnv(gym.Env):
                         reward = INEFFICIENTLY_SOLD_TREASURE
                         # Treasure can only be found with EQUIPMENT or GUIDE
                         self.acquired_items.append(TREASURE)
+                        # done = True
                 else:  # Hasn't acquired EQUIPMENT nor GUIDE
                     reward = INVALID_ACTION
         elif action == RESET:
@@ -199,8 +207,8 @@ class TreasureMapEnv(gym.Env):
         self.state.append(new_room)
         self.current_room = new_room
 
-        # if len(self.state) > len(self.sequence):
-        #     self.state = self.state[-len(self.sequence):]
+        if len(self.state) > len(self.sequence):
+            self.state = self.state[-len(self.sequence):]
 
         return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
@@ -253,10 +261,7 @@ class TreasureMapEnv(gym.Env):
         return self._get_state_repr(self.TOGGLE)
 
     def render(self, mode='human'):
-        print('Current: ' + ' '.join(map(str, self.state[:-1])), end=' ')
-        print('\u001b[31m' + str(self.state[-1]) + '\u001b[0m')  # Output last digit in the color red
-        if self.steps_taken == self.episode_length:
-            print('Goal:    ' + ' '.join(map(str, self.sequence)))
+        pass
 
     def close(self):
         pass
@@ -264,4 +269,10 @@ class TreasureMapEnv(gym.Env):
     def get_name(self):
         state_ratio = math.floor(self.TOGGLE * self.history_length)
         bag_ratio = self.history_length - state_ratio
-        return f'Toggle:{self.TOGGLE}-States:{state_ratio}-BoW:{bag_ratio}-StepSize:{self.step_size}.png'
+        time = datetime.now().strftime('%H:%M %d-%m-%Y')
+        return f'Episode-Length:{self.episode_length}-' \
+               + f'Toggle:{self.TOGGLE}-' \
+               + f'States:{state_ratio}-' \
+               + f'BoW:{bag_ratio}-' \
+               + f'StepSize:{self.step_size}-' \
+               + f'{time}.png'

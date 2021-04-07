@@ -1,6 +1,10 @@
 import argparse
 import os
-from pathlib import Path
+import sys
+
+# Do NOT remove the following two imports: they import the custom environments.
+import envs
+import gym_two_rooms.envs
 
 import gym
 import matplotlib
@@ -31,16 +35,21 @@ class Trainer:
             # self.ENV = 'CartPole-v0'
             # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
-            self.ENV = 'BarryWorld-v0'
-            # self.ENV = 'TreasureMap-v0'
+            # self.ENV = 'BarryWorld-v0'
+            self.ENV = 'TreasureMap-v0'
 
-        # try:
-        self.env = gym.make(self.ENV)
-        # except gym.error.UnregisteredEnv as e:
-        # print(f'Environment {e} has not been installed yet. \nReinstalling known environments...')
-        # os.system('pip install -e gym-two_rooms/')
-        # os.system('pip install -e CookieDomain/')
-        # self.env = gym.make(self.ENV)
+        try:
+            self.env = gym.make(self.ENV)
+        except gym.error.UnregisteredEnv as e:
+            print(f'Environment {e} has not been installed yet. \n(Re)installing known environments...')
+            os.system('pip install -e gym-two_rooms/')
+            os.system('pip install -e CookieDomain/')
+            try:
+                self.env = gym.make(self.ENV)
+            except gym.error.UnregisteredEnv as e:
+                print(f'Couldn\'t install custom environments, got error: {e}')
+                print('Maybe the imports: \n    import env\n    import gym-two_rooms\n Are missing?')
+                sys.exit(1)
 
         if user_input:
             self.env.set_user_params(user_input)
@@ -116,7 +125,14 @@ class Trainer:
     def save_model(self):
         dir = f'models/{self.ENV}/'
         path = f'{dir}{self.name}.h5'
-        self.dqn.save_weights(path, overwrite=True)
+        try:
+            self.dqn.save_weights(path, overwrite=True)
+        except OSError:
+            print(f'Directory {path} doesn\'t exist, creating it and retrying...')
+            cur_dir = os.getcwd()
+            new_dir = os.path.join(cur_dir, 'models', self.ENV)
+            os.mkdir(new_dir)
+            self.dqn.save_weights(path, overwrite=True)
 
     def load_model(self, path):
         self.init_agent()
@@ -164,7 +180,11 @@ if __name__ == '__main__':
             filepath = args.weights
         path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
         if os.path.isfile(path):
-            trainer.load_model(path)
+            try:
+                trainer.load_model(path)
+            except OSError:
+                print('No weights found, got error: {e}')
+
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
