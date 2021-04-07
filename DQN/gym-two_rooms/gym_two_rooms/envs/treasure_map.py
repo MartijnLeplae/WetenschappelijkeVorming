@@ -73,7 +73,7 @@ class TreasureMapEnv(gym.Env):
         self.nb_rooms = 5
         self.steps_taken = 0
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.episode_length = 75  # 75  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 25  # 75  # len(self.sequence)  # Nb of actions in one episode
         # self.history_length = 20
         self.repr_length = 3  # 8
         self.TOGGLE = 0
@@ -92,9 +92,10 @@ class TreasureMapEnv(gym.Env):
         self.current_room = CENTER_ROOM
         self.acquired_items = [MAP]  # Keep a list of the items the agent has collected thus far
 
-        self.observation_space = spaces.Discrete(self.repr_length)
-        self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
-        # self.actions = ['left', 'right', 'up', 'down', 'interact']
+        # The observation consists of the current room the agent is in + history rep
+        self.observation_space = spaces.Discrete(self.repr_length+1) # spaces.Discrete(self.repr_length)
+        # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
+        self.actions = ['left', 'right', 'up', 'down', 'interact']
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
 
     def set_user_parameters(self, **params: dict):
@@ -114,9 +115,9 @@ class TreasureMapEnv(gym.Env):
         if len(self.state) >= len(self.sequence):
             self.state = []
             self.acquired_items = [MAP]
-        # if JEWELRY in self.acquired_items:
-        #     self.state = []
-        #     self.acquired_items = [MAP]
+        if JEWELRY in self.acquired_items:
+            self.state = []
+            self.acquired_items = [MAP]
         room = self.current_room
 
         new_room = 0
@@ -226,12 +227,11 @@ class TreasureMapEnv(gym.Env):
             self.reset()
 
         self.current_room = new_room
-        # done = self.steps_taken >= self.episode_length
-        done = JEWELRY in self.state
+        done = (self.steps_taken >= self.episode_length) #or JEWELRY in self.state
         if done:
             with open('state_log', mode='w') as f:
                 f.write(str(self.state) + '\n')
-            print(self.state)
+            #print(self.state)
 
         return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
@@ -384,7 +384,7 @@ class TreasureMapEnv(gym.Env):
 
         zeros = [0] * (self.repr_length - self.nb_BOW_states - self.nb_regular_states)
 
-        return np.array(zeros + bag_of_words + states)
+        return np.array([self.current_room] + zeros + bag_of_words + states)
 
         # Old version
         # Current implementation returns a np array of size self.repr_length
