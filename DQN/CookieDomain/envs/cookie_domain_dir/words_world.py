@@ -13,7 +13,7 @@ import numpy as np
 
 class WordsWorld(gym.Env):
     def __init__(self):
-        self.goal = 'abbaabbaba' #'hottentottententententoonstelling'  #'helloworld'  #  # the desired word to learn
+        self.goal = 'tentententoonstelling'  #'helloworld'  #  # the desired word to learn
 
         self.state = []
 
@@ -54,19 +54,20 @@ class WordsWorld(gym.Env):
         done = False if self.steps < self.episode_length else True
         # Was it the correct letter?
         if self.state == self.nb_goal[:len(self.state)]:
-            reward = 2
+            reward = 1
             if len(self.state) == len(self.nb_goal):
                 reward = 5
             return self._get_state_repr(), reward, done, {}
 
-        # Correct letter but not in the big picture e.g: goal = 'ababc' and the agent types 'abab->a'
-        # then yes 'b' is followed by 'a' somewhere but there 'c' was needed
-        if len(self.state) > self.n_prev_states \
-                and self._word(self.state[-(self.n_prev_states + 1):]) in self._word(self.nb_goal):
-            reward = 1
+        # # Correct letter but not in the big picture e.g: goal = 'ababc' and the agent types 'abab->a'
+        # # then yes 'b' is followed by 'a' somewhere but there 'c' was needed
+        # if len(self.state) > self.n_prev_states \
+        #         and self._word(self.state[-(self.n_prev_states + 1):]) in self._word(self.nb_goal):
+        #     reward = 0
         else:
+            self.state = []
             # Bad choice, wrong letter
-            reward = -1
+            reward = -3
         return self._get_state_repr(), reward, done, {}
 
     # -> This function takes a list of ints as input and returns a string.
@@ -98,16 +99,19 @@ class WordsWorld(gym.Env):
             result = np.array([0] * (self.n_prev_states - len(hist)) + hist)
             return result
 
+        def get_states():
+            if len(self.state) < self.n_prev_states:
+                return np.array([0] * (self.n_prev_states - len(self.state)) + self.state)
+            else:
+                return np.array(self.state[-self.n_prev_states:])
+
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
         # 1. construct states vector
         states = np.array([])
         if self.add_states:
-            if len(self.state) < self.n_prev_states:
-                states = np.array([0] * (self.n_prev_states - len(self.state)) + self.state)
-            else:
-                states = np.array(self.state[-self.n_prev_states:])
+            states = get_states()
         # 2. Construct count vector
         counts = np.array([])
         if self.add_counts:
@@ -129,6 +133,7 @@ class WordsWorld(gym.Env):
         return self._get_state_repr()
 
     def render(self, mode=None):
+        if len(self.state) == 0: return
         state = self._word(self.state)
         print(state[:-1] + '\u001b[1m' + state[-1] + '\u001b[0m')
 

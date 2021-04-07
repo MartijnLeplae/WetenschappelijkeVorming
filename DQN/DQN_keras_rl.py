@@ -20,7 +20,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 3000
+        self.N_EPISODES = 1500
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -30,9 +30,9 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            # self.ENV = 'WordsWorld-v0'
+            self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
-            self.ENV = 'BarryWorld-v0'
+            # self.ENV = 'BarryWorld-v0'
 
         self.env = gym.make(self.ENV)
 
@@ -42,7 +42,7 @@ class Trainer:
         self.env.seed(123)
 
         self.nb_actions = self.env.action_space.n
-        self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        self.state_size = (self.env.observation_space.n,)  # (self.env.observation_space.n,)  #
         # self.env.observation_space.shape
 
         self.dqn = None
@@ -63,9 +63,9 @@ class Trainer:
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
-        # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1, nb_steps=self.total_nb_steps)
-        test_policy = EpsGreedyQPolicy(eps=0.2)  # do some random actions even when testing
+        #policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
+        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.05, value_test=0.1, nb_steps=self.total_nb_steps)
+        test_policy = EpsGreedyQPolicy(eps=0.0)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy, test_policy=test_policy)
