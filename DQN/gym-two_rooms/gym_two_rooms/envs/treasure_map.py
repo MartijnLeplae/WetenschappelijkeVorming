@@ -72,10 +72,10 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.episode_length = 25  # 75  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 75  # 25  # len(self.sequence)  # Nb of actions in one episode
         # self.history_length = 20
-        self.repr_length = 3  # 8
+        # Ideally, the agent would only need to take 3 actions to sell a treasure.
+        self.repr_length = 3
         self.TOGGLE = 0
         self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
         self.nb_regular_states = self.repr_length - self.nb_BOW_states
@@ -228,10 +228,6 @@ class TreasureMapEnv(gym.Env):
 
         self.current_room = new_room
         done = (self.steps_taken >= self.episode_length) #or JEWELRY in self.state
-        if done:
-            with open('state_log', mode='w') as f:
-                f.write(str(self.state) + '\n')
-            #print(self.state)
 
         return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
