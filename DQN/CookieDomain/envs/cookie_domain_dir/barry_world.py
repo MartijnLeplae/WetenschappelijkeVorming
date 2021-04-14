@@ -29,14 +29,12 @@ class BarryWorld(gym.Env):
         self.dimensions = [500, 500]  # horizontal and vertical dimensions of the world
         self.buttons = np.array([100, 200, 300])  # The x-positions of the buttons in the world
         self.barry = 150  # The starting position of Barry
-        self.step_length = 10  # 25 # How big are the steps of Barry when going left or right?
+        self.step_length = 50  # 25 # How big are the steps of Barry when going left or right?
 
-        self.bucket = 0
-        self.bucket_pos = 400
-        self.bucket_dim = [75, 200]
         #############################################
         self.code = '231'  # The code for a water-droplet
         self.int_code = [int(i) for i in list(self.code)]  # list with int representation of the code
+        self.completions = 0
 
         # Keeps track of the buttons pressed
         self.state = []
@@ -87,8 +85,7 @@ class BarryWorld(gym.Env):
                 self.has_pressed = True
                 self.state.append(dx.argmin()+1)
                 if self.code_complete():
-                    # Put some water in the bucket
-                    self.fill_bucket()
+                    self.completions += 1
                 reward = self.reward_from_move()
             else:
                 # Barry, you cant press a button if you're not near one!
