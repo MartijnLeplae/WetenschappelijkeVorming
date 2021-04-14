@@ -30,6 +30,14 @@ class WordsWorld(gym.Env):
         self.n_prev_states = 4 # Nb of previous states to remember
         # self.repr_length = len(self.actions) + self.n_prev_states if self.add_counts else self.n_prev_states
         self.repr_length = 0
+        self.construct_repr_length()
+        self.action_space = spaces.Discrete(len(self.actions))
+
+        self.steps = 0
+
+        self.episode_length = len(self.goal)
+
+    def construct_repr_length(self):
         if self.add_states:
             self.repr_length += self.n_prev_states
         if self.add_counts:
@@ -38,13 +46,19 @@ class WordsWorld(gym.Env):
             self.repr_length += 1
         if self.add_interval:
             self.repr_length += self.n_prev_states
-
-        self.action_space = spaces.Discrete(len(self.actions))
         self.observation_space = spaces.Discrete(self.repr_length)
 
-        self.steps = 0
+    def set_user_parameters(self, **params: dict):
+        """
+        This method sets the parameters to values
+        given by the user. The parameters that are set
+        are those used by testSuite.py.
+        """
 
-        self.episode_length = len(self.goal)
+        assert params, "params variable can't be None"
+        for p, val in params.items():
+            setattr(self, p, val)
+        self.construct_repr_length()
 
     def step(self, letter):
         self.state.append(letter + 1)

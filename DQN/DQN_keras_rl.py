@@ -2,7 +2,7 @@ import numpy as np
 import gym
 import envs
 import os
-# import gym_two_rooms.envs
+import gym_two_rooms.envs
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -19,8 +19,8 @@ import argparse
 
 
 class Trainer:
-    def __init__(self, env=None):
-        self.N_EPISODES = 1500
+    def __init__(self, env=None, user_input=None):
+        self.N_EPISODES = 3000
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
@@ -35,6 +35,8 @@ class Trainer:
             # self.ENV = 'BarryWorld-v0'
 
         self.env = gym.make(self.ENV)
+        if user_input:
+            self.env.set_user_params(user_input)
 
         # self.env.episode_length = self.STEPS_PER_EPISODE
 
@@ -42,7 +44,10 @@ class Trainer:
         self.env.seed(123)
 
         self.nb_actions = self.env.action_space.n
-        self.state_size = (self.env.observation_space.n,)  # (self.env.observation_space.n,)  #
+        if type(self.env.observation_space) == int:
+            self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        else:
+            self.state_size = (self.env.observation_space.n,)
         # self.env.observation_space.shape
 
         self.dqn = None
@@ -63,9 +68,9 @@ class Trainer:
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
-        #policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.05, value_test=0.1, nb_steps=self.total_nb_steps)
-        test_policy = EpsGreedyQPolicy(eps=0.0)  # do some random actions even when testing
+        # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
+        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1, nb_steps=self.total_nb_steps)
+        test_policy = EpsGreedyQPolicy(eps=0.2)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy, test_policy=test_policy)
@@ -129,8 +134,9 @@ class Trainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0']
     parser.add_argument('-m', '--mode', choices=['train', 'test'], default='train')
-    parser.add_argument('-e', '--environment', type=str)
+    parser.add_argument('-e', '--environment', choices=possible_envs, type=str)
     parser.add_argument('-w', '--weights', type=str, default=None)
     args = parser.parse_args()
 
@@ -145,6 +151,12 @@ if __name__ == '__main__':
         filepath = "(500)States:3-231.h5"
         if args.weights:
             filepath = args.weights
-        trainer.load_model(f'models/{trainer.ENV}/{filepath}')
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
+        if os.path.isfile(path):
+            trainer.load_model(path)
         trainer.test()
+
+        # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
+        # python3 DQN_keras_rl.py -e BarryWorld-v0 -m test -w '(500)States:3-231.h5'
 
