@@ -18,8 +18,8 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None):
-        self.N_EPISODES = 2000
-        self.STEPS_PER_EPISODE = 3
+        self.N_EPISODES = 500
+        # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
 
         # Pass an environment to DQN_keras_rl.py with the '-e' or '--environment' flag
@@ -61,9 +61,9 @@ class Trainer:
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=self.total_nb_steps, window_length=self.window_length)
-        # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.2,
-                                      nb_steps=self.total_nb_steps)
+        policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed
+        # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=1., value_min=.2, value_test=0.2,
+        #                               nb_steps=self.total_nb_steps)
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy)
@@ -79,9 +79,9 @@ class Trainer:
         # Layer 2
         model.add(Dense(50))
         model.add(Activation('relu'))
-        # # Layer 3
-        # model.add(Dense(50))
-        # model.add(Activation('relu'))
+        # Layer 3
+        model.add(Dense(50))
+        model.add(Activation('relu'))
         # Output Layer
         model.add(Dense(self.nb_actions))
         model.add(Activation('linear'))
