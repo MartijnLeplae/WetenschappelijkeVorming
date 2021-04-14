@@ -134,8 +134,8 @@ if __name__ == '__main__':
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
-    # trainer.load_model(f'models/{trainer.ENV}/States:3-231.h5')
-    trainer.start(save=True)
-    trainer.plot(save=True)
-    # trainer.test()
+    trainer.load_model(f'models/{trainer.ENV}/(500)epsgr:25States:3-123.h5')
+    # trainer.start(save=True)
+    # trainer.plot(save=True)
+    trainer.test()
 

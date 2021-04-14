@@ -26,7 +26,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1231232' # The code barry has to learn
+CODE = '123' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -34,13 +34,13 @@ WRONG_BUTTON = -2
 GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
-POLICY = 'linan5-1:' # this is just appended to the name_string, does not have effect otherwise
+POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
 NB_PREV_STATES = 3
-N_STATES = False  # add normal history of length n_prev_states?
+N_STATES = True  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
-INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
-EPISODE_LENGTH = 75
+INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
+EPISODE_LENGTH = 25
 
 
 """
@@ -139,9 +139,10 @@ class BarryWorld(gym.Env):
             if closest <= 5:
                 self.has_pressed = True
                 self.state.append(dx.argmin()+1)
-                reward, code_complete = self.reward_state.step(self.state[-1])
+                reward, code_complete, flush = self.reward_state.step(self.state[-1])
+                if flush:
+                    self.state = []
                 if code_complete:
-                    self.state = [] # Start over
                     self.reward_state.reset()
                     self.score += 1
             else:
@@ -264,7 +265,7 @@ class BarryWorld(gym.Env):
         def draw_state():
             myfont = pg.font.SysFont("Comic Sans MS", 25)
             textsurface = myfont.render(f"State: {self.state[-len(self.code):]}", True, BLACK)
-            location = [150, 10]
+            location = [170, 10]
             self.screen.blit(textsurface, location)
 
         def draw_code():
@@ -325,15 +326,17 @@ class rewardState:
         """
         Make a step in the state-machine.
 
-        :param input: The symbol to use as input
+        :param int input: The symbol to use as input
         :return: Reward from the given step.
         """
+        input = str(input)
         size = len(self.regex)
+        flush = False
         if self.pos + 1 >= size:
             if input == self.regex[self.pos]:
-                return CODE_COMPLETE, True
+                return CODE_COMPLETE, True, True
             else:
-                return WRONG_BUTTON, False
+                return WRONG_BUTTON, False, True
         else:
             goodmove = False
             if input == self.regex[self.pos]:
@@ -346,9 +349,16 @@ class rewardState:
                     if input == self.regex[self.pos+2]:
                         goodmove = True
                         self.pos += 3
-            reward = GOOD_BUTTON if goodmove else WRONG_BUTTON
+            elif goodmove:
+                self.pos += 1
+            if goodmove:
+                reward = GOOD_BUTTON
+            else:
+                reward = WRONG_BUTTON
+                self.reset()
+                flush = True
             complete = goodmove and (self.pos > size)
-            return reward, complete
+            return reward, complete, flush
 
     def reset(self):
         self.pos = 0
