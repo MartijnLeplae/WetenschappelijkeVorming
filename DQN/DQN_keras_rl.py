@@ -1,4 +1,5 @@
 import argparse
+import csv
 import os
 import sys
 
@@ -144,6 +145,7 @@ class Trainer:
             print("You should call plot after training. No data present for reward/episode")
             return
         plt.figure(1)
+        plt.clf()
         plt.title(f'Average Rewards in {self.ENV} on {len(self.episode_reward)} episodes')
         plt.xlabel('episode')
         plt.ylabel('reward')
@@ -152,8 +154,21 @@ class Trainer:
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
         if save:
             directory = f'graphs/{self.ENV}/'
-            plt.savefig(f'{directory}{self.name}')
+            save_path = f'{directory}{self.name}'
+            if save_path.endswith('.png'):
+                plt.savefig(save_path)
+            else:
+                plt.savefig(save_path + ".png")
         # plt.show()
+
+    def save_data(self):
+        if self.episode_reward is None:
+            print("You should call plot after training. No data present for reward/episode")
+            return
+        save_path = os.path.join('data', self.ENV, self.name + ".csv")
+        with open(save_path, mode='w') as f:
+            writer = csv.writer(f)
+            writer.writerow(self.episode_reward)
 
 
 if __name__ == '__main__':
@@ -174,6 +189,7 @@ if __name__ == '__main__':
     if args.mode == "train":
         trainer.start(save=True)
         trainer.plot(save=True)
+        trainer.save_data()
     elif args.mode == "test":
         filepath = "(500)States:3-231.h5"
         if args.weights:
@@ -182,9 +198,8 @@ if __name__ == '__main__':
         if os.path.isfile(path):
             try:
                 trainer.load_model(path)
-            except OSError:
-                print('No weights found, got error: {e}')
-
+            except OSError as e:
+                print(f'No weights found, got error: {e}')
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):

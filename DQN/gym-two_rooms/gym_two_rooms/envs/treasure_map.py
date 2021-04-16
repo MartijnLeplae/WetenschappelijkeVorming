@@ -14,6 +14,7 @@ TOP_ROOM, LEFT_ROOM, CENTER_ROOM, RIGHT_ROOM, BOTTOM_ROOM = 0, 1, 2, 3, 4
 # Variable names for the items:
 # TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY = 'treasure', 'guide', 'map', 'equipment', 'jewelry'
 TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY = 0, 1, 2, 3, 4
+ITEMS = [TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY]
 
 INVALID_ACTION = -2
 MOVE = 0
@@ -22,6 +23,8 @@ NEUTRAL_ACTION = 0
 EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 RESET_PENALTY = -2
+
+NB_PREV_STATES = 5
 
 
 # TODO
@@ -72,14 +75,16 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 1  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
         # self.history_length = 20
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.repr_length = 3
+        self.repr_length = NB_PREV_STATES
+
         self.TOGGLE = 0
+        self.step_size = 1
+
         self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
         self.nb_regular_states = self.repr_length - self.nb_BOW_states
-        self.step_size = 1
 
         # When a moves generates an observation:
         # self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
@@ -93,10 +98,29 @@ class TreasureMapEnv(gym.Env):
         self.acquired_items = [MAP]  # Keep a list of the items the agent has collected thus far
 
         # The observation consists of the current room the agent is in + history rep
-        self.observation_space = spaces.Discrete(self.repr_length+1) # spaces.Discrete(self.repr_length)
+        self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
         # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
         self.actions = ['left', 'right', 'up', 'down', 'interact']
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
+
+        # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
+        # the variables set underneath?
+        self.use_in_place_repr = True
+
+        self.N_STATES = False
+        self.BOW = True
+        self.MOST_USED = True
+        self.INTERVAL = True
+
+    def construct_repr_length(self):
+        if self.N_STATES:
+            self.repr_length += NB_PREV_STATES
+        if self.BOW:
+            self.repr_length += len(ITEMS)
+        if self.MOST_USED:
+            self.repr_length += 1
+        if self.INTERVAL:
+            self.repr_length += NB_PREV_STATES
 
     def set_user_parameters(self, **params: dict):
         """
@@ -108,13 +132,13 @@ class TreasureMapEnv(gym.Env):
         assert params, "params variable can't be None"
         for p, val in params.items():
             setattr(self, p, val)
+        if not self.use_in_place_repr:
+            self.construct_repr_length()
 
     # Using the obtained items as observations
     def step(self, action):
         self.steps_taken += 1
-        if len(self.state) >= len(self.sequence):
-            self.state = []
-            self.acquired_items = [MAP]
+        # if len(self.state) >= len(self.sequence) or JEWELRY in self.acquired_items:
         if JEWELRY in self.acquired_items:
             self.state = []
             self.acquired_items = [MAP]
@@ -227,129 +251,11 @@ class TreasureMapEnv(gym.Env):
             self.reset()
 
         self.current_room = new_room
-        done = (self.steps_taken >= self.episode_length) #or JEWELRY in self.state
+        done = (self.steps_taken >= self.episode_length)  # or JEWELRY in self.state
 
         return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
 
-    # Using the visited rooms as observations
-    def step_original(self, action):
-        self.steps_taken += 1
-        done = self.steps_taken >= self.episode_length
-        # done = JEWELRY in self.acquired_items
-        room = self.current_room
-
-        new_room = 0
-        reward = 0
-
-        # Determine new room:
-        if action == LEFT:
-            reward = MOVE
-            if room not in [CENTER_ROOM, RIGHT_ROOM]:
-                reward = INVALID_ACTION
-                new_room = room
-            elif room == CENTER_ROOM:
-                new_room = LEFT_ROOM
-            elif room == RIGHT_ROOM:
-                new_room = CENTER_ROOM
-        elif action == RIGHT:
-            reward = MOVE
-            if room not in [LEFT_ROOM, CENTER_ROOM]:
-                reward = INVALID_ACTION
-                new_room = room
-            elif room == LEFT_ROOM:
-                new_room = CENTER_ROOM
-            elif room == CENTER_ROOM:
-                new_room = RIGHT_ROOM
-        elif action == UP:
-            reward = MOVE
-            if room not in [CENTER_ROOM, BOTTOM_ROOM]:
-                reward = INVALID_ACTION
-                new_room = room
-            elif room == CENTER_ROOM:
-                new_room = TOP_ROOM
-            elif room == BOTTOM_ROOM:
-                new_room = CENTER_ROOM
-        elif action == DOWN:
-            reward = MOVE
-            if room not in [TOP_ROOM, CENTER_ROOM]:
-                reward = INVALID_ACTION
-                new_room = room
-            elif room == TOP_ROOM:
-                new_room = CENTER_ROOM
-            elif room == CENTER_ROOM:
-                new_room = BOTTOM_ROOM
-        elif action == INTERACT:
-            if room == TOP_ROOM:  # Treasure room
-                if GUIDE in self.acquired_items or EQUIPMENT in self.acquired_items:  # TODO set this to XOR
-                    if TREASURE not in self.acquired_items:
-                        self.acquired_items.append(TREASURE)
-                        reward = ACQUIRED_ITEM
-                    else:
-                        reward = NEUTRAL_ACTION
-                else:
-                    reward = INVALID_ACTION
-            elif room == LEFT_ROOM:  # Guide room
-                # Agent starts off with map in its self.acquired_items.
-                if GUIDE not in self.acquired_items:
-                    if EQUIPMENT not in self.acquired_items:  # has neither GUIDE nor EQUIPMENT
-                        reward = ACQUIRED_ITEM
-                    else:
-                        # already has EQUIPMENT, but not GUIDE
-                        # Obtaining GUIDE when already having EQUIPMENT is not efficient
-                        reward = NEUTRAL_ACTION
-                    self.acquired_items.append(GUIDE)
-                else:
-                    reward = INVALID_ACTION
-            elif room == CENTER_ROOM:  # Map room, agent starts off with map in its self.acquired_items.
-                reward = NEUTRAL_ACTION  # Map doesn't play a role yet as if right now
-            elif room == RIGHT_ROOM:  # Equipment room, agent starts off with map in its self.acquired_items.
-                if EQUIPMENT not in self.acquired_items:
-                    if GUIDE not in self.acquired_items:
-                        reward = ACQUIRED_ITEM
-                    else:
-                        reward = NEUTRAL_ACTION
-                    self.acquired_items.append(EQUIPMENT)
-                else:
-                    reward = INVALID_ACTION
-            elif room == BOTTOM_ROOM:  # Jewelry room
-                if bool(GUIDE in self.acquired_items) ^ bool(EQUIPMENT in self.acquired_items):
-                    # n.b.: ^ is the XOR operator for booleans
-                    if TREASURE not in self.acquired_items:
-                        # No treasure to sell!
-                        reward = INVALID_ACTION
-                    else:
-                        # Reward efficient decisions (i.e. only acquiring either EQUIPMENT or GUIDE to obtain TREASURE)
-                        reward = EFFICIENTLY_SOLD_TREASURE
-                        self.acquired_items.append(TREASURE)
-                        # done = True
-                elif GUIDE in self.acquired_items and EQUIPMENT in self.acquired_items:
-                    if TREASURE not in self.acquired_items:
-                        # No treasure to sell!
-                        reward = INVALID_ACTION
-                    else:
-                        # Sold treasure, but in an inefficient manner
-                        reward = INEFFICIENTLY_SOLD_TREASURE
-                        # Treasure can only be found with EQUIPMENT or GUIDE
-                        self.acquired_items.append(TREASURE)
-                        # done = True
-                else:  # Hasn't acquired EQUIPMENT nor GUIDE
-                    reward = INVALID_ACTION
-        elif action == RESET:
-            reward = RESET_PENALTY
-            self.reset()
-
-        self.state.append(new_room)
-        self.current_room = new_room
-
-        # This has the side effect of restricting the repr_length of the agent to `len(self.sequence)` == 3
-        if len(self.state) > len(self.sequence):
-            self.state = self.state[-len(self.sequence):]
-
-        return self._get_state_repr(self.TOGGLE, self.step_size), reward, done, {}
-
-    # This is the function where you decide what the agent (=neural network) can 'see'.
-    # This can also include information about previous states (=history)
-    """ 
+    """
     @param: slider: parameter ∈ [0,1]:
         0: state representation is done using usual state memorisation
         1: state representation is done using bag of words
@@ -358,7 +264,14 @@ class TreasureMapEnv(gym.Env):
     @param: step: parameter to specify how many states should be left in-between the sampled history states
     """
 
+    # This is the function where you decide what the agent (=neural network) can 'see'.
+    # This can also include information about previous states (=history)
     def _get_state_repr(self, slider=0.0, step=1):
+        if self.use_in_place_repr:
+            return self.get_in_place_state_repr(slider, step)
+        return self.get_extended_state_repr()
+
+    def get_in_place_state_repr(self, slider, step):
         if slider > 0:
             assert self.repr_length >= self.nb_rooms
 
@@ -367,13 +280,12 @@ class TreasureMapEnv(gym.Env):
         state_slice = self.state[-(self.repr_length * step)::step]
 
         ratio = math.floor(slider * len(state_slice))
-        bag_part = state_slice[:ratio]
-        counter = Counter(bag_part)
-        # bag_of_words = [counter[i] for i in range(self.nb_rooms)]
-        bag_of_words = [counter[i] for i in range(len(bag_part))]
-        self.nb_BOW_states = len(bag_of_words)
+        # bag_part = state_slice[:ratio]
 
-        # zeros = [0] * (self.history_length - len(state_slice) - len(bag_of_words))
+        # counter = Counter(bag_part)
+        # bag_of_words = [counter[i] for i in range(len(bag_part))]
+        bag_of_words = [self.state.count(i) for i in range(len(ITEMS))][:self.nb_BOW_states]
+        # self.nb_BOW_states = len(bag_of_words)
 
         states = state_slice[-(self.repr_length - self.nb_BOW_states):]
         self.nb_regular_states = len(states)
@@ -382,14 +294,54 @@ class TreasureMapEnv(gym.Env):
 
         return np.array([self.current_room] + zeros + bag_of_words + states)
 
-        # Old version
+    # This is the function where you decide what the agent (=neural network) can 'see'.
+    # This can also include information about previous states (=history)
+    def get_extended_state_repr(self):
+        def get_bow():
+            count = []
+            for i in range(len(ITEMS)):
+                count.append(self.state.count(i))
+            return np.array(count)
+
+        def most_used():
+            count = get_bow()
+            return np.array([np.argmax(np.array(count)) + 1])
+
+        def get_hist_interval():
+            interval = -2
+            hist = []
+            lim = max(-1, len(self.state) - NB_PREV_STATES * 2)
+            for i in range(len(self.state) - 1, lim, interval):
+                hist.append(self.state[i])
+            result = np.array([0] * (NB_PREV_STATES - len(hist)) + hist)
+            return result
+
+        def get_states():
+            if len(self.state) < NB_PREV_STATES:
+                return np.array([0] * (NB_PREV_STATES - len(self.state)) + self.state)
+            else:
+                return np.array(self.state[-NB_PREV_STATES:])
+
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
-        # if len(self.state) < self.history_length:
-        #     return np.array([0]*(self.history_length-len(self.state)) + self.state)
-        # else:
-        #     return np.array(self.state[-self.history_length:])
+        # 1. construct states vector
+        states = np.array([])
+        if self.N_STATES:
+            states = get_states()
+        # 2. Construct count vector
+        bow = np.array([])
+        if self.BOW:
+            bow = get_bow()
+        # 3. Construct most-used vector
+        mu = np.array([])
+        if self.MOST_USED:
+            mu = np.array(most_used())
+        # 4. Construct interval vector
+        inter = np.array([])
+        if self.INTERVAL:
+            inter = get_hist_interval()
+        return np.concatenate([[self.current_room], states, bow, mu, inter])
 
     def reset(self):
         self.steps_taken = 0
@@ -408,7 +360,7 @@ class TreasureMapEnv(gym.Env):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
         return f'Episode-Length:{self.episode_length}-' \
                + f'Toggle:{self.TOGGLE}-' \
-               + f'States:{self.nb_regular_states}-' \
+               + f'States:{self.repr_length - self.nb_BOW_states}-' \
                + f'BoW:{self.nb_BOW_states}-' \
                + f'StepSize:{self.step_size}-' \
-               + f'{time}.png'
+               + f'{time}'
