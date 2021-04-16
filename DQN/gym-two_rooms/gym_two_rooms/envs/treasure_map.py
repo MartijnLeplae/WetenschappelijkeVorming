@@ -75,7 +75,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 1  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 75  # 25  # len(self.sequence)  # Nb of actions in one episode
         # self.history_length = 20
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES

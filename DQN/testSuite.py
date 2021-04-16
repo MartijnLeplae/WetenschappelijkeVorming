@@ -2,11 +2,12 @@ import os
 import traceback
 from functools import reduce
 from operator import mul
+from numpy import arange
 
 import gym_two_rooms.envs
 import envs
-from WetenschappelijkeVorming.DQN.DQN_keras_rl import Trainer
-from numpy import arange
+
+from DQN_keras_rl import Trainer
 
 """
 A small program to test different environments 
