@@ -98,19 +98,81 @@ def handle_treasure_map(treasure_trainer: Trainer):
                     continue
         print_counter()
     else:
+        step_sizes = get_input("step sizes", floats=False)
+        assert 0 not in step_sizes, "Step size can't be 0"
+
         N_STATES = options[int(input('Boolean value for N_STATES: \n(0) False\n(1) True\n'))]
         BOW = options[int(input('Boolean value for BOW: \n(0) False\n(1) True\n'))]
         INTERVAL = options[int(input('Boolean value for INTERVAL: \n(0) False\n(1) True\n'))]
         MOST_USED = options[int(input('Boolean value for MOST_USED: \n(0) False\n(1) True\n'))]
-        treasure_trainer.env.reset()
-        treasure_trainer.env.set_user_parameters(N_STATES=N_STATES, BOW=BOW, INTERVAL=INTERVAL, MOST_USED=MOST_USED)
-        try:
-            trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
-            trainer.start(save=True)
-            trainer.plot(save=True)
-            trainer.save_data()
-        except ValueError as e:
-            traceback.print_exception(type(e), e, e.__traceback__)
+
+        for step_size in step_sizes:
+            treasure_trainer.env.reset()
+            treasure_trainer.env.set_user_parameters(step_size=step_size, N_STATES=N_STATES, BOW=BOW, INTERVAL=INTERVAL, MOST_USED=MOST_USED)
+            try:
+                trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
+                trainer.start(save=True)
+                trainer.plot(save=True)
+                trainer.save_data()
+            except ValueError as e:
+                traceback.print_exception(type(e), e, e.__traceback__)
+                continue
+
+
+def handle_treasure_map_hard(treasure_trainer: Trainer):
+    """
+    For the treasure map environment, we need the following parameters:
+        - toggle,
+        - step size
+    """
+
+    options = [False, True]
+    use_in_place_repr = options[int(input('Do you want to use a constant repr size? \n(0) False\n(1) True\n'))]
+
+    if use_in_place_repr:
+        # nb_BOW_states_values = get_input("toggle values", floats=True)
+        nb_BOW_states_values = input("How many of NB_PREV_STATES should be used for BOW? Multiple values should be "
+                                     "separated by spaces:").split()
+        nb_BOW_states_values = [int(x) for x in nb_BOW_states_values]
+
+        step_sizes = get_input("step sizes", floats=False)
+        assert 0 not in step_sizes, "Step size can't be 0"
+
+        start_counter(len(nb_BOW_states_values) * len(step_sizes))
+        for step_size in step_sizes:
+            for bow_value in nb_BOW_states_values:
+                treasure_trainer.env.reset()
+                treasure_trainer.env.set_user_parameters(nb_BOW_states=bow_value, step_size=step_size)
+                try:
+                    trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
+                    trainer.start(save=True)
+                    trainer.plot(save=True)
+                    trainer.save_data()
+                except ValueError as e:
+                    traceback.print_exception(type(e), e, e.__traceback__)
+                    increment_counter()
+                    continue
+        print_counter()
+    else:
+        step_sizes = get_input("step sizes", floats=False)
+        assert 0 not in step_sizes, "Step size can't be 0"
+
+        N_STATES = options[int(input('Boolean value for N_STATES: \n(0) False\n(1) True\n'))]
+        BOW = options[int(input('Boolean value for BOW: \n(0) False\n(1) True\n'))]
+        INTERVAL = options[int(input('Boolean value for INTERVAL: \n(0) False\n(1) True\n'))]
+        MOST_USED = options[int(input('Boolean value for MOST_USED: \n(0) False\n(1) True\n'))]
+
+        for step_size in step_sizes:
+            treasure_trainer.env.reset()
+            treasure_trainer.env.set_user_parameters(step_size=step_size, N_STATES=N_STATES, BOW=BOW, INTERVAL=INTERVAL, MOST_USED=MOST_USED)
+            try:
+                trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
+                trainer.start(save=True)
+                trainer.plot(save=True)
+                trainer.save_data()
+            except ValueError as e:
+                traceback.print_exception(type(e), e, e.__traceback__)
+                continue
 
 
 def handle_words_world(words_trainer: Trainer):
@@ -194,6 +256,9 @@ def start_counter(nb_of_trainings):
 def increment_counter():
     global counter
     counter += 1
+    print("==============================================")
+    print(f"========== Finished training nb. {counter} ===========")
+    print("==============================================")
 
 
 def print_counter():
@@ -228,6 +293,8 @@ if __name__ == '__main__':
             handle_barry_world(trainer)
         elif env == "TreasureMap-v0":
             handle_treasure_map(trainer)
+        elif env == "TreasureMapHard-v0":
+            handle_treasure_map_hard(trainer)
     elif mode == "test":
         filepath = "(500)States:3-231.h5"
         weights = input('Name of .h5-weights file: (leave empty if none)\n')

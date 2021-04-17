@@ -38,6 +38,7 @@ class Trainer:
             # self.ENV = 'TwoRooms-v0'
             # self.ENV = 'BarryWorld-v0'
             self.ENV = 'TreasureMap-v0'
+            # self.ENV = 'TreasureMapHard-v0'
 
         try:
             self.env = gym.make(self.ENV)
@@ -113,6 +114,11 @@ class Trainer:
         return model
 
     def start(self, save=False):
+        # try:
+        #     if not self.env.use_in_place_repr:
+        #         self.env.construct_repr_length()
+        # except ValueError:
+        #     pass
         self.init_agent()
         out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=1)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
@@ -133,7 +139,11 @@ class Trainer:
             cur_dir = os.getcwd()
             new_dir = os.path.join(cur_dir, 'models', self.ENV)
             os.mkdir(new_dir)
-            self.dqn.save_weights(path, overwrite=True)
+            try:
+                self.dqn.save_weights(path, overwrite=True)
+            except OSError:
+                print("Failed, saving in current directory...")
+                self.dqn.save_weights("./" + self.name + ".h5")
 
     def load_model(self, path):
         self.init_agent()
@@ -163,7 +173,7 @@ class Trainer:
 
     def save_data(self):
         if self.episode_reward is None:
-            print("You should call plot after training. No data present for reward/episode")
+            print("You should call save_data after training. No data present for reward/episode")
             return
         save_path = os.path.join('data', self.ENV, self.name + ".csv")
         with open(save_path, mode='w') as f:
@@ -173,7 +183,8 @@ class Trainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0', 'TreasureMap-v0']
+    possible_envs = \
+        ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0', 'TreasureMap-v0', 'TreasureMapHard-v0']
     parser.add_argument('-m', '--mode', choices=['train', 'test'], default='train')
     parser.add_argument('-e', '--environment', choices=possible_envs, type=str)
     parser.add_argument('-w', '--weights', type=str, default=None)
@@ -181,6 +192,8 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(dir_path)
+    assert os.getcwd().endswith("WetenschappelijkeVorming/DQN"), \
+        "Switch to the WetenschappelijkeVorming/DQN directory first to ensure proper saving functionality."
 
     if args.environment:
         trainer = Trainer(args.environment)
