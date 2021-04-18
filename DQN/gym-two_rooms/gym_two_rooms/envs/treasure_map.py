@@ -75,11 +75,10 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 1
-
 
         # When a moves generates an observation:
         # self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
@@ -94,7 +93,10 @@ class TreasureMapEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = True
+        self.use_in_place_repr = False
+
+        # Ideally, the agent would only need to take 3 actions to sell a treasure.
+        self.repr_length = NB_PREV_STATES if self.use_in_place_repr else 0
 
         # self.history_length = 20
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
@@ -117,6 +119,21 @@ class TreasureMapEnv(gym.Env):
         # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
         self.actions = ['left', 'right', 'up', 'down', 'interact']
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
+
+        if not self.use_in_place_repr:
+            self.construct_repr_length()
+
+        self.nb_BOW_states = 5
+        self.nb_regular_states = self.repr_length - self.nb_BOW_states
+
+
+        # The observation consists of the current room the agent is in + history rep
+        self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
+        # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
+        self.actions = ['left', 'right', 'up', 'down', 'interact']
+        self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
+
+
 
     def construct_repr_length(self):
         if self.N_STATES:

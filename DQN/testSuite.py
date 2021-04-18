@@ -4,7 +4,7 @@ from functools import reduce
 from operator import mul
 from numpy import arange
 
-import gym_two_rooms.envs
+# import gym_two_rooms.envs
 import envs
 
 from DQN_keras_rl import Trainer
