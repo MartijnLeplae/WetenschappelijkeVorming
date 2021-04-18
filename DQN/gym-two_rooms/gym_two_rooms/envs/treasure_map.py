@@ -76,16 +76,10 @@ class TreasureMapEnv(gym.Env):
         self.nb_rooms = 5
         self.steps_taken = 0
         self.episode_length = 75  # 25  # len(self.sequence)  # Nb of actions in one episode
-        # self.history_length = 20
-        # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.repr_length = NB_PREV_STATES
 
         self.TOGGLE = 0
         self.step_size = 1
 
-        # self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
-        self.nb_BOW_states = 5
-        self.nb_regular_states = self.repr_length - self.nb_BOW_states
 
         # When a moves generates an observation:
         # self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
@@ -98,23 +92,31 @@ class TreasureMapEnv(gym.Env):
         self.current_room = CENTER_ROOM
         self.acquired_items = [MAP]  # Keep a list of the items the agent has collected thus far
 
-        # The observation consists of the current room the agent is in + history rep
+        # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
+        # the variables set underneath?
+        self.use_in_place_repr = True
+
+        # self.history_length = 20
+        # Ideally, the agent would only need to take 3 actions to sell a treasure.
+        self.repr_length = NB_PREV_STATES if self.use_in_place_repr else 0
+
+        self.N_STATES = True  # False
+        self.BOW = True  # False
+        self.MOST_USED = False
+        self.INTERVAL = False  # True
+
+        if not self.use_in_place_repr:
+            self.construct_repr_length()
+
+        # self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
+        self.nb_BOW_states = 5
+        self.nb_regular_states = self.repr_length - self.nb_BOW_states
+
+        # The observation consists of the current room the agent is in + history rep = 1 + self.repr_length
         self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
         # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
         self.actions = ['left', 'right', 'up', 'down', 'interact']
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
-
-        # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
-        # the variables set underneath?
-        self.use_in_place_repr = False
-
-        self.N_STATES = True
-        self.BOW = True
-        self.MOST_USED = False
-        self.INTERVAL = False
-
-        if not self.use_in_place_repr:
-            self.construct_repr_length()
 
     def construct_repr_length(self):
         if self.N_STATES:
@@ -361,9 +363,10 @@ class TreasureMapEnv(gym.Env):
 
     def get_name(self):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
-        return f'Episode-Length:{self.episode_length}-' \
-               + f'Toggle:{self.TOGGLE}-' \
+        return 'VGL1_IN_PLACE:' \
+               + f'Episode-Length:{self.episode_length}-' \
                + f'States:{self.repr_length - self.nb_BOW_states}-' \
                + f'BoW:{self.nb_BOW_states}-' \
                + f'StepSize:{self.step_size}-' \
                + f'{time}'
+# + f'Toggle:{self.TOGGLE}-' \
