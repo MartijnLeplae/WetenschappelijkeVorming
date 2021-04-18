@@ -98,10 +98,6 @@ class TreasureMapEnv(gym.Env):
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES if self.use_in_place_repr else 0
 
-        # self.history_length = 20
-        # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.repr_length = NB_PREV_STATES if self.use_in_place_repr else 0
-
         self.N_STATES = True  # False
         self.BOW = True  # False
         self.MOST_USED = False
@@ -119,21 +115,6 @@ class TreasureMapEnv(gym.Env):
         # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
         self.actions = ['left', 'right', 'up', 'down', 'interact']
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
-
-        if not self.use_in_place_repr:
-            self.construct_repr_length()
-
-        self.nb_BOW_states = 5
-        self.nb_regular_states = self.repr_length - self.nb_BOW_states
-
-
-        # The observation consists of the current room the agent is in + history rep
-        self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
-        # self.actions = ['left', 'right', 'up', 'down', 'interact', 'reset']
-        self.actions = ['left', 'right', 'up', 'down', 'interact']
-        self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
-
-
 
     def construct_repr_length(self):
         if self.N_STATES:
