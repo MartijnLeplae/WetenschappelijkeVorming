@@ -96,7 +96,7 @@ class TreasureMapEnv(gym.Env):
         self.use_in_place_repr = False
 
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
-        self.repr_length = NB_PREV_STATES if self.use_in_place_repr else 0
+        self.repr_length = NB_PREV_STATES
 
         self.N_STATES = True  # False
         self.BOW = True  # False
@@ -117,6 +117,7 @@ class TreasureMapEnv(gym.Env):
         self.action_space = spaces.Discrete(len(self.actions))  # move left, right, up, down; interact or reset
 
     def construct_repr_length(self):
+        self.repr_length = 0
         if self.N_STATES:
             self.repr_length += NB_PREV_STATES
         if self.BOW:
@@ -138,6 +139,7 @@ class TreasureMapEnv(gym.Env):
             setattr(self, p, val)
         if not self.use_in_place_repr:
             self.construct_repr_length()
+            self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
 
     # Using the obtained items as observations
     def step(self, action):
