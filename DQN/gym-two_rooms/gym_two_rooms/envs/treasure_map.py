@@ -363,10 +363,19 @@ class TreasureMapEnv(gym.Env):
 
     def get_name(self):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
-        return 'VGL1_IN_PLACE:' \
-               + f'Episode-Length:{self.episode_length}-' \
-               + f'States:{self.repr_length - self.nb_BOW_states}-' \
-               + f'BoW:{self.nb_BOW_states}-' \
-               + f'StepSize:{self.step_size}-' \
-               + f'{time}'
-# + f'Toggle:{self.TOGGLE}-' \
+        if self.use_in_place_repr:
+            return f'Episode-Length:{self.episode_length}-' \
+                   + f'States:{self.repr_length - self.nb_BOW_states}-' \
+                   + f'BoW:{self.nb_BOW_states}-' \
+                   + f'StepSize:{self.step_size}-' \
+                   + f'{time}'
+        else:
+            return f'EXTENDED-' \
+                + f'EpsLen:{self.episode_length}-' \
+                + f'N_States:{self.N_STATES}-' \
+                + f'BoW:{self.BOW}-' \
+                + f'Interval:{self.INTERVAL}-' \
+                + f'MU:{self.MOST_USED}-' \
+                + f'{time}'
+
+# + f'Toggle:{self.TOGGLE}-'
