@@ -119,7 +119,7 @@ def handle_cookie_domain(cookie_trainer: Trainer):
 
 
 if __name__ == '__main__':
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0']
+    possible_envs = ['ButtonsWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0']
     # CookieDomain-v0 doesn't yet have adjustable parameters
     possible_modes = ['train', 'test']
     possible_envs_choices = '\n'.join([f"({possible_envs.index(env)}) {env}" for env in possible_envs])
@@ -134,7 +134,7 @@ if __name__ == '__main__':
             handle_two_rooms(trainer)
         elif env == "WordsWorld-v0":
             handle_words_world(trainer)
-        elif env == "BarryWorld-v0":
+        elif env == "ButtonsWorld-v0":
             handle_barry_world(trainer)
     elif mode == "test":
         filepath = "(500)States:3-231.h5"

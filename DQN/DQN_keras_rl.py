@@ -32,7 +32,7 @@ class Trainer:
             # self.ENV = 'CartPole-v0'
             self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
-            # self.ENV = 'BarryWorld-v0'
+            # self.ENV = 'ButtonsWorld-v0'
 
         self.env = gym.make(self.ENV)
         if user_input:
@@ -134,7 +134,7 @@ class Trainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0']
+    possible_envs = ['ButtonsWorld-v0', 'TwoRooms-v0', 'CookieDomain-v0', 'WordsWorld-v0']
     parser.add_argument('-m', '--mode', choices=['train', 'test'], default='train')
     parser.add_argument('-e', '--environment', choices=possible_envs, type=str)
     parser.add_argument('-w', '--weights', type=str, default=None)
@@ -158,5 +158,5 @@ if __name__ == '__main__':
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
-        # python3 DQN_keras_rl.py -e BarryWorld-v0 -m test -w '(500)States:3-231.h5'
+        # python3 DQN_keras_rl.py -e ButtonsWorld-v0 -m test -w '(500)States:3-231.h5'
 

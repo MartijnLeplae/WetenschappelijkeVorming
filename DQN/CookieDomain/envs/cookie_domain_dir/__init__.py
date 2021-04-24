@@ -1,3 +1,3 @@
 from envs.cookie_domain_dir.cookie_domain import CookieDomain
 from envs.cookie_domain_dir.words_world import WordsWorld
-from envs.cookie_domain_dir.barry_world import BarryWorld
+from envs.cookie_domain_dir.buttons_world import ButtonsWorld

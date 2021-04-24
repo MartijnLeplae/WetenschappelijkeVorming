@@ -26,7 +26,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '123' # The code barry has to learn
+CODE = '1231232' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -36,15 +36,15 @@ CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
 NB_PREV_STATES = 3
-N_STATES = True  # add normal history of length n_prev_states?
+N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = False  # add a Bag-off-words?
+BOW = True  # add a Bag-off-words?
 INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
-EPISODE_LENGTH = 25
+EPISODE_LENGTH = 75
 
 
 """
-BarryWorld is a environment where Barry wants to fill a bucket of water.
+ButtonsWorld is a environment where Barry wants to fill a bucket of water.
 To do this he has to press buttons in a certain order. Barry can move around and can 
 press a button if he is close enough to it. 
 He can see this vector every step:
@@ -53,7 +53,7 @@ He can see this vector every step:
     The extra information can be toggled in the constructor. For example the environment can give Barry
     a vector with the last n pressed buttons.
 """
-class BarryWorld(gym.Env):
+class ButtonsWorld(gym.Env):
     def __init__(self):
         ############ Graphical vars ###############
         self.graphics_initialised = False
