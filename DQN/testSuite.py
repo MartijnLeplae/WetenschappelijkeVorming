@@ -1,17 +1,23 @@
 import os
+import traceback
+from functools import reduce
+from operator import mul
+
 import gym_two_rooms.envs
 import envs
 from WetenschappelijkeVorming.DQN.DQN_keras_rl import Trainer
 from numpy import arange
 
-
 """
 A small program to test different environments 
 with arrays of parameter values.
 
-Each environment that is tested in the testSuite,
+Each environment that is tested in the testSuite
 should implement the method set_user_parameters. 
 """
+
+counter = 0
+total = 0
 
 
 def get_input(name, floats=False):
@@ -41,6 +47,7 @@ def handle_two_rooms(rooms_trainer: Trainer):
     toggle_values = get_input("toggle values", floats=True)
     step_sizes = get_input("step sizes", floats=False)
     assert 0 not in step_sizes, "Step size can't be 0"
+    start_counter(len(toggle_values) * len(step_sizes))
     for step_size in step_sizes:
         for toggle_value in toggle_values:
             rooms_trainer.env.reset()
@@ -48,8 +55,61 @@ def handle_two_rooms(rooms_trainer: Trainer):
             try:
                 trainer.start(save=True)
                 trainer.plot(save=True)
+                trainer.save_data()
             except ValueError:
+                increment_counter()
                 continue
+    print_counter()
+
+
+def handle_treasure_map(treasure_trainer: Trainer):
+    """
+    For the treasure map environment, we need the following parameters:
+        - toggle,
+        - step size
+    """
+
+    options = [False, True]
+    use_in_place_repr = options[int(input('Do you want to use a constant repr size? \n(0) False\n(1) True\n'))]
+
+    if use_in_place_repr:
+        # nb_BOW_states_values = get_input("toggle values", floats=True)
+        nb_BOW_states_values = input("How many of NB_PREV_STATES should be used for BOW? Multiple values should be "
+                                     "separated by spaces:").split()
+        nb_BOW_states_values = [int(x) for x in nb_BOW_states_values]
+
+        step_sizes = get_input("step sizes", floats=False)
+        assert 0 not in step_sizes, "Step size can't be 0"
+
+        start_counter(len(nb_BOW_states_values) * len(step_sizes))
+        for step_size in step_sizes:
+            for bow_value in nb_BOW_states_values:
+                treasure_trainer.env.reset()
+                treasure_trainer.env.set_user_parameters(nb_BOW_states=bow_value, step_size=step_size)
+                try:
+                    trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
+                    trainer.start(save=True)
+                    trainer.plot(save=True)
+                    trainer.save_data()
+                except ValueError as e:
+                    traceback.print_exception(type(e), e, e.__traceback__)
+                    increment_counter()
+                    continue
+        print_counter()
+    else:
+        N_STATES = options[int(input('Boolean value for N_STATES: \n(0) False\n(1) True\n'))]
+        BOW = options[int(input('Boolean value for BOW: \n(0) False\n(1) True\n'))]
+        INTERVAL = options[int(input('Boolean value for INTERVAL: \n(0) False\n(1) True\n'))]
+        MOST_USED = options[int(input('Boolean value for MOST_USED: \n(0) False\n(1) True\n'))]
+        treasure_trainer.env.reset()
+        treasure_trainer.env.set_user_parameters(N_STATES=N_STATES, BOW=BOW, INTERVAL=INTERVAL, MOST_USED=MOST_USED)
+        try:
+            trainer.name = f"({trainer.N_EPISODES}){trainer.env.get_name()}"
+            trainer.start(save=True)
+            trainer.plot(save=True)
+            trainer.save_data()
+        except ValueError as e:
+            traceback.print_exception(type(e), e, e.__traceback__)
 
 
 def handle_words_world(words_trainer: Trainer):
@@ -65,6 +125,8 @@ def handle_words_world(words_trainer: Trainer):
     add_counts_vals = get_boolean_input("add_counts")
     add_most_used_vals = get_boolean_input("add_most_used")
     add_interval_vals = get_boolean_input("add_interval")
+
+    start_counter(len(add_states_vals) * len(add_counts_vals) * len(add_most_used_vals) * len(add_interval_vals))
     for state in add_states_vals:
         for count in add_counts_vals:
             for most_used in add_most_used_vals:
@@ -72,13 +134,17 @@ def handle_words_world(words_trainer: Trainer):
                     words_trainer.env.reset()
                     if not any([state, count, most_used, interval]):  # The history repr must be non-empty
                         continue
-                    words_trainer.env.set_user_parameters(add_states=state, add_counts=count, add_most_used=most_used, add_interval=interval)
+                    words_trainer.env.set_user_parameters(add_states=state, add_counts=count, add_most_used=most_used,
+                                                          add_interval=interval)
                     try:
                         words_trainer.start(save=True)
                         words_trainer.plot(save=True)
+                        words_trainer.save_data()
                     except ValueError as v:
                         print(v)
+                        increment_counter()
                         continue
+    print_counter()
 
 
 def handle_barry_world(barry_trainer: Trainer):
@@ -96,6 +162,9 @@ def handle_barry_world(barry_trainer: Trainer):
     BOW_vals = get_boolean_input("BOW")
     MOST_USED_vals = get_boolean_input("MOST_USED")
     INTERVAL_vals = get_boolean_input("INTERVAL")
+
+    # Total of counter is the product of lengths of lists of given values.
+    start_counter(reduce(mul, map(len, [N_STATES_vals, BOW_vals, MOST_USED_vals, INTERVAL_vals]), 1))
     for state in N_STATES_vals:
         for count in BOW_vals:
             for most_used in MOST_USED_vals:
@@ -105,12 +174,32 @@ def handle_barry_world(barry_trainer: Trainer):
                     if not any(vals):  # The history repr must be non-empty
                         continue
                     # par_dic = {par: val for (par, val) in zip(params, vals)}  # using dict instead of **kwargs
-                    barry_trainer.env.set_user_parameters(N_STATES=state, BOW=count, MOST_USED=most_used, INTERVAL=interval)
+                    barry_trainer.env.set_user_parameters(N_STATES=state, BOW=count, MOST_USED=most_used,
+                                                          INTERVAL=interval)
                     try:
                         barry_trainer.start(save=True)
                         barry_trainer.plot(save=True)
+                        barry_trainer.save_data()
                     except ValueError:
                         continue
+
+
+def start_counter(nb_of_trainings):
+    global counter, total
+    counter = 0
+    total = nb_of_trainings
+
+
+def increment_counter():
+    global counter
+    counter += 1
+
+
+def print_counter():
+    global counter, total
+    print("==============================================")
+    print(f"====== {total - counter} out of {total} trainings succeeded. =======")
+    print("==============================================")
 
 
 def handle_cookie_domain(cookie_trainer: Trainer):
@@ -119,7 +208,7 @@ def handle_cookie_domain(cookie_trainer: Trainer):
 
 
 if __name__ == '__main__':
-    possible_envs = ['ButtonsWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0']
+    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0', 'TreasureMap-v0']
     # CookieDomain-v0 doesn't yet have adjustable parameters
     possible_modes = ['train', 'test']
     possible_envs_choices = '\n'.join([f"({possible_envs.index(env)}) {env}" for env in possible_envs])
@@ -134,8 +223,10 @@ if __name__ == '__main__':
             handle_two_rooms(trainer)
         elif env == "WordsWorld-v0":
             handle_words_world(trainer)
-        elif env == "ButtonsWorld-v0":
+        elif env == "BarryWorld-v0":
             handle_barry_world(trainer)
+        elif env == "TreasureMap-v0":
+            handle_treasure_map(trainer)
     elif mode == "test":
         filepath = "(500)States:3-231.h5"
         weights = input('Name of .h5-weights file: (leave empty if none)\n')

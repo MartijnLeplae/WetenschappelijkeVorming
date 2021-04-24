@@ -1,18 +1,23 @@
-import numpy as np
-import gym
-import envs
+import argparse
+import csv
 import os
+import sys
+
+# Do NOT remove the following two imports: they import the custom environments.
+import envs
 import gym_two_rooms.envs
 
-from tensorflow.keras.models import Sequential
+import gym
+import matplotlib
+import numpy as np
+from matplotlib import pyplot as plt
+from rl.agents.dqn import DQNAgent
+from rl.memory import SequentialMemory
+from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 from tensorflow.keras.layers import Dense, Activation, Flatten
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
-from rl.agents.dqn import DQNAgent
-from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
-from rl.memory import SequentialMemory
-
-import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import argparse
@@ -20,9 +25,10 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 3000
+        self.N_EPISODES = 500
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
+        dir_path = os.path.dirname(os.path.realpath(__file__))
 
         # Pass an environment to DQN_keras_rl.py with the '-e' or '--environment' flag
         if env:
@@ -30,11 +36,23 @@ class Trainer:
         else:
             # self.ENV = 'CookieDomain-v0'
             # self.ENV = 'CartPole-v0'
-            self.ENV = 'WordsWorld-v0'
+            # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
             # self.ENV = 'ButtonsWorld-v0'
 
-        self.env = gym.make(self.ENV)
+        try:
+            self.env = gym.make(self.ENV)
+        except gym.error.UnregisteredEnv as e:
+            print(f'Environment {e} has not been installed yet. \n(Re)installing known environments...')
+            os.system('pip install -e gym-two_rooms/')
+            os.system('pip install -e CookieDomain/')
+            try:
+                self.env = gym.make(self.ENV)
+            except gym.error.UnregisteredEnv as e:
+                print(f'Couldn\'t install custom environments, got error: {e}')
+                print('Maybe the imports: \n    import env\n    import gym-two_rooms\n Are missing?')
+                sys.exit(1)
+
         if user_input:
             self.env.set_user_params(user_input)
 
@@ -67,10 +85,11 @@ class Trainer:
 
     def init_agent(self):
         model = self._build_model()
-        memory = SequentialMemory(limit=int(self.total_nb_steps*0.7), window_length=self.window_length)
-        # policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
-        policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1, nb_steps=self.total_nb_steps)
-        test_policy = EpsGreedyQPolicy(eps=0.2)  # do some random actions even when testing
+        memory = SequentialMemory(limit=int(self.total_nb_steps * 0.7), window_length=self.window_length)
+        policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
+        # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1,
+        #                               nb_steps=self.total_nb_steps)
+        test_policy = EpsGreedyQPolicy(eps=0.1)  # do some random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy, test_policy=test_policy)
@@ -108,7 +127,14 @@ class Trainer:
     def save_model(self):
         dir = f'models/{self.ENV}/'
         path = f'{dir}{self.name}.h5'
-        self.dqn.save_weights(path, overwrite=True)
+        try:
+            self.dqn.save_weights(path, overwrite=True)
+        except OSError:
+            print(f'Directory {path} doesn\'t exist, creating it and retrying...')
+            cur_dir = os.getcwd()
+            new_dir = os.path.join(cur_dir, 'models', self.ENV)
+            os.mkdir(new_dir)
+            self.dqn.save_weights(path, overwrite=True)
 
     def load_model(self, path):
         self.init_agent()
@@ -120,6 +146,7 @@ class Trainer:
             print("You should call plot after training. No data present for reward/episode")
             return
         plt.figure(1)
+        plt.clf()
         plt.title(f'Average Rewards in {self.ENV} on {len(self.episode_reward)} episodes')
         plt.xlabel('episode')
         plt.ylabel('reward')
@@ -128,8 +155,21 @@ class Trainer:
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
         if save:
             directory = f'graphs/{self.ENV}/'
-            plt.savefig(f'{directory}{self.name}')
+            save_path = f'{directory}{self.name}'
+            if save_path.endswith('.png'):
+                plt.savefig(save_path)
+            else:
+                plt.savefig(save_path + ".png")
         # plt.show()
+
+    def save_data(self):
+        if self.episode_reward is None:
+            print("You should call plot after training. No data present for reward/episode")
+            return
+        save_path = os.path.join('data', self.ENV, self.name + ".csv")
+        with open(save_path, mode='w') as f:
+            writer = csv.writer(f)
+            writer.writerow(self.episode_reward)
 
 
 if __name__ == '__main__':
@@ -140,6 +180,9 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--weights', type=str, default=None)
     args = parser.parse_args()
 
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(dir_path)
+
     if args.environment:
         trainer = Trainer(args.environment)
     else:
@@ -147,16 +190,18 @@ if __name__ == '__main__':
     if args.mode == "train":
         trainer.start(save=True)
         trainer.plot(save=True)
+        trainer.save_data()
     elif args.mode == "test":
         filepath = "(500)States:3-231.h5"
         if args.weights:
             filepath = args.weights
-        dir_path = os.path.dirname(os.path.realpath(__file__))
         path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
         if os.path.isfile(path):
-            trainer.load_model(path)
+            try:
+                trainer.load_model(path)
+            except OSError as e:
+                print(f'No weights found, got error: {e}')
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
         # python3 DQN_keras_rl.py -e ButtonsWorld-v0 -m test -w '(500)States:3-231.h5'
-
