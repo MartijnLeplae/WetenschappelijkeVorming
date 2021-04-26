@@ -38,7 +38,7 @@ class Trainer:
             # self.ENV = 'CartPole-v0'
             # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
-            # self.ENV = 'ButtonsWorld-v0'
+            self.ENV = 'ButtonsWorld-v0'
 
         try:
             self.env = gym.make(self.ENV)
