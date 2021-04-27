@@ -35,11 +35,11 @@ GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
-NB_PREV_STATES = 0
-N_STATES = False  # add normal history of length n_prev_states?
+NB_PREV_STATES = 4
+N_STATES = True  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = False  # add a Bag-off-words?
-INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
+BOW = True  # add a Bag-off-words?
+INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
