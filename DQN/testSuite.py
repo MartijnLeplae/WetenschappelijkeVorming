@@ -5,7 +5,8 @@ from operator import mul
 
 import gym_two_rooms.envs
 import envs
-from WetenschappelijkeVorming.DQN.DQN_keras_rl import Trainer
+#from WetenschappelijkeVorming.DQN.DQN_keras_rl import Trainer
+from DQN_keras_rl import Trainer
 from numpy import arange
 
 """
@@ -35,6 +36,10 @@ def get_boolean_input(name):
     options_formatted = '\n'.join([f'({options.index(x)}) {x}' for x in options])
     choice = int(input('Select the number of the desired choice:\n' + options_formatted + '\n'))
     return options[choice]
+
+
+def get_repr_length():
+    return int(input("What is the desired length of the states/interval vector?"))
 
 
 def handle_two_rooms(rooms_trainer: Trainer):
@@ -147,9 +152,9 @@ def handle_words_world(words_trainer: Trainer):
     print_counter()
 
 
-def handle_barry_world(barry_trainer: Trainer):
+def handle_buttons_world(buttons_trainer: Trainer):
     """
-    For the barry world we need the following boolean parameters:
+    For the buttons world we need the following boolean parameters:
         - N_STATES,
         - BOW,
         - MOST_USED,
@@ -162,6 +167,9 @@ def handle_barry_world(barry_trainer: Trainer):
     BOW_vals = get_boolean_input("BOW")
     MOST_USED_vals = get_boolean_input("MOST_USED")
     INTERVAL_vals = get_boolean_input("INTERVAL")
+    repr_length = 0
+    if N_STATES_vals or INTERVAL_vals:
+        repr_length = get_repr_length()
 
     # Total of counter is the product of lengths of lists of given values.
     start_counter(reduce(mul, map(len, [N_STATES_vals, BOW_vals, MOST_USED_vals, INTERVAL_vals]), 1))
@@ -169,18 +177,20 @@ def handle_barry_world(barry_trainer: Trainer):
         for count in BOW_vals:
             for most_used in MOST_USED_vals:
                 for interval in INTERVAL_vals:
-                    barry_trainer.env.reset()
+                    buttons_trainer.env.reset()
                     vals = [state, count, most_used, interval]
                     if not any(vals):  # The history repr must be non-empty
                         continue
                     # par_dic = {par: val for (par, val) in zip(params, vals)}  # using dict instead of **kwargs
-                    barry_trainer.env.set_user_parameters(N_STATES=state, BOW=count, MOST_USED=most_used,
-                                                          INTERVAL=interval)
+                    print(f'[State:{state}, BOW:{count}, Most-Used:{most_used}, Interval:{interval}]')
+                    buttons_trainer.env.set_user_parameters(n_states=state, bow=count, most_used=most_used,
+                                                          interval=interval, nb_prev_states=repr_length)
                     try:
-                        barry_trainer.start(save=True)
-                        barry_trainer.plot(save=True)
-                        barry_trainer.save_data()
-                    except ValueError:
+                        buttons_trainer.start(save=True)
+                        buttons_trainer.plot(save=True)
+                        buttons_trainer.save_data()
+                    except ValueError as v:
+                        print(v)
                         continue
 
 
@@ -208,7 +218,7 @@ def handle_cookie_domain(cookie_trainer: Trainer):
 
 
 if __name__ == '__main__':
-    possible_envs = ['BarryWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0', 'TreasureMap-v0']
+    possible_envs = ['ButtonsWorld-v0', 'TwoRooms-v0', 'WordsWorld-v0', 'TreasureMap-v0']
     # CookieDomain-v0 doesn't yet have adjustable parameters
     possible_modes = ['train', 'test']
     possible_envs_choices = '\n'.join([f"({possible_envs.index(env)}) {env}" for env in possible_envs])
@@ -223,8 +233,8 @@ if __name__ == '__main__':
             handle_two_rooms(trainer)
         elif env == "WordsWorld-v0":
             handle_words_world(trainer)
-        elif env == "BarryWorld-v0":
-            handle_barry_world(trainer)
+        elif env == "ButtonsWorld-v0":
+            handle_buttons_world(trainer)
         elif env == "TreasureMap-v0":
             handle_treasure_map(trainer)
     elif mode == "test":

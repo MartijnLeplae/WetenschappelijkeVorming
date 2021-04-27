@@ -25,7 +25,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 500
+        self.N_EPISODES = 2000
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -83,6 +83,9 @@ class Trainer:
 
         self.total_nb_steps = (self.N_EPISODES + self.warmup_episodes) * self.env.episode_length
 
+    def get_name(self):
+        return f"({self.N_EPISODES}){self.env.get_name()}"
+
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=int(self.total_nb_steps * 0.7), window_length=self.window_length)
@@ -96,6 +99,10 @@ class Trainer:
         self.dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
     def _build_model(self):
+        if type(self.env.observation_space) == int:
+            self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        else:
+            self.state_size = (self.env.observation_space.n,)
         model = Sequential()
         # Input Layer
         model.add(Flatten(input_shape=(1,) + self.state_size))
@@ -126,7 +133,7 @@ class Trainer:
 
     def save_model(self):
         dir = f'models/{self.ENV}/'
-        path = f'{dir}{self.name}.h5'
+        path = f'{dir}{self.get_name()}.h5'
         try:
             self.dqn.save_weights(path, overwrite=True)
         except OSError:
@@ -155,7 +162,7 @@ class Trainer:
                  [self.episode_reward[i] for i in range(0, len(self.episode_reward), step)])
         if save:
             directory = f'graphs/{self.ENV}/'
-            save_path = f'{directory}{self.name}'
+            save_path = f'{directory}{self.get_name()}'
             if save_path.endswith('.png'):
                 plt.savefig(save_path)
             else:
@@ -166,7 +173,7 @@ class Trainer:
         if self.episode_reward is None:
             print("You should call plot after training. No data present for reward/episode")
             return
-        save_path = os.path.join('data', self.ENV, self.name + ".csv")
+        save_path = os.path.join('data', self.ENV, self.get_name() + ".csv")
         with open(save_path, mode='w') as f:
             writer = csv.writer(f)
             writer.writerow(self.episode_reward)

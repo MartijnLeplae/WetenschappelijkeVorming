@@ -35,10 +35,10 @@ GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
-NB_PREV_STATES = 3
+NB_PREV_STATES = 0
 N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = True  # add a Bag-off-words?
+BOW = False  # add a Bag-off-words?
 INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
@@ -97,6 +97,7 @@ class ButtonsWorld(gym.Env):
         self.episode_length = EPISODE_LENGTH
 
     def construct_repr_length(self):
+        self.repr_length = len(BUTTONS)
         if self.n_states:
             self.repr_length += self.nb_prev_states
         if self.bow:
@@ -105,6 +106,7 @@ class ButtonsWorld(gym.Env):
             self.repr_length += 1
         if self.interval:
             self.repr_length += self.nb_prev_states
+        self.observation_space = self.repr_length
 
     def set_user_parameters(self, **params: dict):
         """
