@@ -75,7 +75,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 75  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 2
