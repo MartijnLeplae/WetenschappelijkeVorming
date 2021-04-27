@@ -75,10 +75,10 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 75  # 300  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
-        self.step_size = 1
+        self.step_size = 2
 
         # When a moves generates an observation:
         # self.sequence = [LEFT_ROOM, TOP_ROOM, BOTTOM_ROOM]
@@ -93,13 +93,13 @@ class TreasureMapEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = False
+        self.use_in_place_repr = True  # False
 
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
         self.N_STATES = True  # False
-        self.BOW = True  # False
+        self.BOW = False  # False
         self.MOST_USED = False
         self.INTERVAL = False  # True
 
@@ -107,7 +107,7 @@ class TreasureMapEnv(gym.Env):
             self.construct_repr_length()
 
         # self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
-        self.nb_BOW_states = 5
+        self.nb_BOW_states = 0  # 5
         self.nb_regular_states = self.repr_length - self.nb_BOW_states
 
         # The observation consists of the current room the agent is in + history rep = 1 + self.repr_length
@@ -126,6 +126,7 @@ class TreasureMapEnv(gym.Env):
             self.repr_length += 1
         if self.INTERVAL:
             self.repr_length += NB_PREV_STATES
+        self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
 
     def set_user_parameters(self, **params: dict):
         """
@@ -139,7 +140,6 @@ class TreasureMapEnv(gym.Env):
             setattr(self, p, val)
         if not self.use_in_place_repr:
             self.construct_repr_length()
-            self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
 
     # Using the obtained items as observations
     def step(self, action):
@@ -281,7 +281,7 @@ class TreasureMapEnv(gym.Env):
         if slider > 0:
             assert self.repr_length >= self.nb_rooms
 
-        # Take last `history_length' states; equal to self.state if history_length > len(self.state)
+        # Take last `NB_PREV_STATES` states; equal to self.state if NB_PREV_STATES > len(self.state)
         # And take step parameter into account
         state_slice = self.state[-(self.repr_length * step)::step]
 
@@ -296,7 +296,9 @@ class TreasureMapEnv(gym.Env):
         states = state_slice[-(self.repr_length - self.nb_BOW_states):]
         self.nb_regular_states = len(states)
 
-        zeros = [0] * (self.repr_length - self.nb_BOW_states - self.nb_regular_states)
+        zeros = [len(ITEMS)] * (self.repr_length - self.nb_BOW_states - self.nb_regular_states)
+        with open('step_output.txt', mode='a') as f:
+            f.write(str([self.current_room]) + " " + str(zeros) + " " + str(bag_of_words) + " " + str(states) + "state: " + str(self.state) + "(slice: " + str(state_slice) + ' )\n')
 
         return np.array([self.current_room] + zeros + bag_of_words + states)
 
@@ -370,7 +372,7 @@ class TreasureMapEnv(gym.Env):
                    + f'StepSize:{self.step_size}-' \
                    + f'{time}'
         else:
-            return f'EXTENDED-' \
+            return f'BASELINE_STATES-' \
                 + f'EpsLen:{self.episode_length}-' \
                 + f'N_States:{self.N_STATES}-' \
                 + f'BoW:{self.BOW}-' \
