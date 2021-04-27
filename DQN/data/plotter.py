@@ -38,30 +38,16 @@ def read_data_to_dict(directory):
 
 def plot_all(directory):
     y_values = read_data_to_array(directory)
-    # plt.figure(1)
-    # fig1 = plt.subplot
-    figure, axis = plt.subplots(1, 2)
+    plt.figure(1)
     step = 5
     data = os.listdir(directory)
-    lowers = []
-    highers = []
     x_values = np.arange(0, max(map(len, y_values)), step)
     for index, ys in enumerate(y_values):
-        ys_i = [ys[i] for i in range(0, len(ys), step)]
-        if np.nanmean(ys) > 100:
-            highers.append(data[index])
-            axis[0].plot(x_values, ys_i, label=data[index].replace("-Toggle:0", ""))
-        else:
-            lowers.append(data[index])
-            axis[1].plot(x_values, ys_i, label=data[index].replace("-Toggle:0", ""))
-        # plt.plot(x_values, ys_i, label=data[index])
-    # plt.legend(title="Legenda", loc="lower right")
-    axis[0].legend(title="Legenda", loc="lower right")
-    axis[1].legend(title="Legenda", loc="lower right")
-    print("Lowers:\n", '\n'.join(lowers))
-    print("Highers:\n", '\n'.join(highers))
+        ys_stepped = [ys[i] for i in range(0, len(ys), step)]
+        # x_values = np.arange(0, len(ys), step)
+        plt.plot(x_values, ys_stepped, label=data[index].replace('_', '-'))
+    plt.legend(title="Legenda", loc="lower right")
     plt.show()
-    return lowers, highers
 
 
 def plot_specific_graphs(directory):
@@ -158,29 +144,8 @@ def plot_mean_and_error(directory, baseline_directory, title, step=5):
     plt.show()
 
 
-if __name__ == '__main__':
-    # Set default save directory
-    matplotlib.rcParams["savefig.directory"] = "../../finishedGraphs"
-    # Enable LaTeX for plot titles and text
-    plt.rc('text', usetex=True)
-    # Set LaTeX font
-    plt.rc('font', family='serif')
-    # Set window size
-    matplotlib.rcParams['figure.figsize'] = (15, 10)
-    # Set font size
-    matplotlib.rcParams.update({'font.size': 24})
-
-    # Directory that contains data to be plotted
-    data_directory = "./TreasureMap-v0/Baseline:AllInPlaceCombinations300"
-    baseline_directory = "./TreasureMap-v0/Baseline:StatesOnly300"
-    plot_title = r'Trainen m.b.v. \textit{vast} geheugen $(N = 10)$:' \
-                 + '\n' \
-                 + r'\#Observaties $= 1$, \#BOW $= 5$'
-
-    # plot_mean_and_error(data_directory, baseline_directory, plot_title)
-    # plot_all(data_directory)
-
-    all_ys = read_data_to_array(data_directory)
+def plot_all_in_place_combinations300():
+    all_ys = read_data_to_array("./TreasureMap-v0/Baseline:AllInPlaceCombinations300")
     y_values = [ys for ys in all_ys if np.nanmean(ys) < 100]
     step = 5
     fig = plt.figure()
@@ -226,7 +191,7 @@ if __name__ == '__main__':
     # plt.yticks(list(plt.yticks()[0]) + [overall_mean])
 
     # Plotting baseline
-    y_values = read_data_to_array(baseline_directory)
+    y_values = read_data_to_array("./TreasureMap-v0/Baseline:StatesOnly300")
 
     y_err = np.nanstd(y_values, axis=0)
     y_mean = np.nanmean(y_values, axis=0)
@@ -250,3 +215,27 @@ if __name__ == '__main__':
     plot_baseline()
 
     plt.show()
+
+
+if __name__ == '__main__':
+    # Set default save directory
+    matplotlib.rcParams["savefig.directory"] = "../../finishedGraphs"
+    # Enable LaTeX for plot titles and text
+    plt.rc('text', usetex=True)
+    # Set LaTeX font
+    plt.rc('font', family='serif')
+    # Set window size
+    matplotlib.rcParams['figure.figsize'] = (15, 10)
+    # Set font size
+    matplotlib.rcParams.update({'font.size': 24})
+
+    # Directory that contains data to be plotted
+    data_directory = "./TreasureMap-v0/Baseline:HistSum75/"
+    baseline_directory = "./TreasureMap-v0/Baseline:StatesOnly75"
+    plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
+                 + '\n' \
+                 + r'\#Observaties $= 5$ + Geschiedenis som'
+
+    plot_mean_and_error(data_directory, baseline_directory, plot_title)
+    # plot_all(data_directory)
+

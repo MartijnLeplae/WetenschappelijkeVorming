@@ -100,8 +100,9 @@ class TreasureMapEnv(gym.Env):
 
         self.N_STATES = True  # False
         self.BOW = False  # False
-        self.MOST_USED = True   # False
+        self.MOST_USED = False  # False
         self.INTERVAL = False  # True
+        self.HISTORY_SUM = True
 
         if not self.use_in_place_repr:
             self.construct_repr_length()
@@ -126,6 +127,8 @@ class TreasureMapEnv(gym.Env):
             self.repr_length += 1
         if self.INTERVAL:
             self.repr_length += NB_PREV_STATES
+        if self.HISTORY_SUM:
+            self.repr_length += 1
         self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
 
     def set_user_parameters(self, **params: dict):
@@ -297,8 +300,8 @@ class TreasureMapEnv(gym.Env):
         self.nb_regular_states = len(states)
 
         zeros = [len(ITEMS)] * (self.repr_length - self.nb_BOW_states - self.nb_regular_states)
-        with open('step_output.txt', mode='a') as f:
-            f.write(str([self.current_room]) + " " + str(zeros) + " " + str(bag_of_words) + " " + str(states) + "state: " + str(self.state) + "(slice: " + str(state_slice) + ' )\n')
+        # with open('step_output.txt', mode='a') as f:
+        #     f.write(str([self.current_room]) + " " + str(zeros) + " " + str(bag_of_words) + " " + str(states) + "state: " + str(self.state) + "(slice: " + str(state_slice) + ' )\n')
 
         return np.array([self.current_room] + zeros + bag_of_words + states)
 
@@ -330,6 +333,10 @@ class TreasureMapEnv(gym.Env):
             else:
                 return np.array(self.state[-NB_PREV_STATES:])
 
+        def get_hist_sum():
+            count = get_bow()
+            return np.array([np.nansum(count)])
+
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
@@ -349,7 +356,11 @@ class TreasureMapEnv(gym.Env):
         inter = np.array([])
         if self.INTERVAL:
             inter = get_hist_interval()
-        return np.concatenate([[self.current_room], states, bow, mu, inter])
+        hist_sum = np.array([])
+        if self.HISTORY_SUM:
+            hist_sum = get_hist_sum()
+
+        return np.concatenate([[self.current_room], states, bow, mu, inter, hist_sum])
 
     def reset(self):
         self.steps_taken = 0
@@ -372,7 +383,7 @@ class TreasureMapEnv(gym.Env):
                    + f'StepSize:{self.step_size}-' \
                    + f'{time}'
         else:
-            return f'BASELINE_STATES-' \
+            return f'BASELINE_HIST_SUM-' \
                 + f'EpsLen:{self.episode_length}-' \
                 + f'N_States:{self.N_STATES}-' \
                 + f'BoW:{self.BOW}-' \
