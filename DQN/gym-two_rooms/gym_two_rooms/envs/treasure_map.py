@@ -75,7 +75,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 75  # 300  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 2
@@ -93,14 +93,14 @@ class TreasureMapEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = True  # False
+        self.use_in_place_repr = False  # True
 
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
         self.N_STATES = True  # False
         self.BOW = False  # False
-        self.MOST_USED = False
+        self.MOST_USED = True   # False
         self.INTERVAL = False  # True
 
         if not self.use_in_place_repr:
