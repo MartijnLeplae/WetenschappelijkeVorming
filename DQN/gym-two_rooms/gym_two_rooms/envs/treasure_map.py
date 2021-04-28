@@ -75,7 +75,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 75  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 2
@@ -93,22 +93,22 @@ class TreasureMapEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = False  # True
+        self.use_in_place_repr = True  # False
 
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
         self.N_STATES = True  # False
-        self.BOW = False  # False
+        self.BOW = True  # False
         self.MOST_USED = False  # False
         self.INTERVAL = False  # True
-        self.HISTORY_SUM = True
+        self.HISTORY_SUM = False
 
         if not self.use_in_place_repr:
             self.construct_repr_length()
 
         # self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
-        self.nb_BOW_states = 0  # 5
+        self.nb_BOW_states = len(ITEMS)  # 0
         self.nb_regular_states = self.repr_length - self.nb_BOW_states
 
         # The observation consists of the current room the agent is in + history rep = 1 + self.repr_length
@@ -377,13 +377,14 @@ class TreasureMapEnv(gym.Env):
     def get_name(self):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
         if self.use_in_place_repr:
-            return f'Episode-Length:{self.episode_length}-' \
+            return f'BASELINE_BOW_INPLACE' \
+                   + f'EpsLen:{self.episode_length}-' \
                    + f'States:{self.repr_length - self.nb_BOW_states}-' \
                    + f'BoW:{self.nb_BOW_states}-' \
                    + f'StepSize:{self.step_size}-' \
                    + f'{time}'
         else:
-            return f'BASELINE_HIST_SUM-' \
+            return f'BASELINE_BOW-' \
                 + f'EpsLen:{self.episode_length}-' \
                 + f'N_States:{self.N_STATES}-' \
                 + f'BoW:{self.BOW}-' \
