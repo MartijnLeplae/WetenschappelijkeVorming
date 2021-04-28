@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '121122212' # The code barry has to learn
+CODE = '121122' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -37,10 +37,10 @@ CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
 NB_PREV_STATES = 3
-N_STATES = False  # add normal history of length n_prev_states?
+N_STATES = True  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
-INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
+INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
