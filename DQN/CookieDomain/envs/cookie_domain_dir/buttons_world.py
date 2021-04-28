@@ -15,7 +15,7 @@ BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
 BARRY_START = 0
-BUTTONS = [100, 200]
+BUTTONS = [100, 200, 300]
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '121122' # The code barry has to learn
+CODE = '12|33|11|23' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -37,21 +37,19 @@ CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
 NB_PREV_STATES = 3
-N_STATES = True  # add normal history of length n_prev_states?
+N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
-INTERVAL = False  # add self.interval of history of n_prev_states with one state skipped?
+INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
 
 """
-ButtonsWorld is a environment where Barry wants to fill a bucket of water.
-To do this he has to press buttons in a certain order. Barry can move around and can 
-press a button if he is close enough to it. 
+ButtonsWorld is a environment where the agent has to press buttons in a certain order..
+The agent can move around and can press a button if he is close enough to it. 
 He can see this vector every step:
-    -> [delta_bucket1, delta_bucket2, (delta_bucket3), 'extra information about last pressed buttons']
-    Where delta denotes the distance with Barry.
-    The extra information can be toggled in the constructor. For example the environment can give Barry
+    -> [vector with distance to each button, 'extra information about last pressed buttons = history']
+    The extra information can be toggled in the constructor. For example the environment can give the
     a vector with the last n pressed buttons.
 """
 class ButtonsWorld(gym.Env):
@@ -220,7 +218,7 @@ class ButtonsWorld(gym.Env):
         # 3. Construct most-used vector
         mu = np.array([])
         if self.most_used:
-            mu = np.array(self.most_used())
+            mu = np.array(most_used())
         # 4. Construct self.interval vector
         inter = np.array([])
         if self.interval:
@@ -361,7 +359,7 @@ class rewardState:
                 reward = WRONG_BUTTON
                 self.reset()
                 flush = True
-            complete = goodmove and (self.pos > size)
+            complete = goodmove and (self.pos >= size)
             return reward, complete, flush
 
     def reset(self):
