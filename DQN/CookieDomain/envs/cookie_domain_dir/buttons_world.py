@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import re
+from datetime import datetime
 
 # COLORS
 BLUE = (0, 0, 255)
@@ -14,7 +15,7 @@ BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
 BARRY_START = 0
-BUTTONS = [100, 200, 300]
+BUTTONS = [100, 200]
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
@@ -26,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1231232' # The code barry has to learn
+CODE = '121122212' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -35,10 +36,10 @@ GOOD_BUTTON = 1
 CODE_COMPLETE = 6
 # HISTORY REPRESENTATION
 POLICY = 'epsgr:' # this is just appended to the name_string, does not have effect otherwise
-NB_PREV_STATES = 4
-N_STATES = True  # add normal history of length n_prev_states?
+NB_PREV_STATES = 3
+N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
-BOW = True  # add a Bag-off-words?
+BOW = False  # add a Bag-off-words?
 INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
 EPISODE_LENGTH = 75
 
@@ -293,6 +294,7 @@ class ButtonsWorld(gym.Env):
 
 
     def get_name(self):
+        time = datetime.now().strftime('%H:%M %d-%m-%Y')
         name = POLICY + str(self.episode_length)
         if self.n_states:
             name += f'States:{self.nb_prev_states}'
@@ -302,7 +304,7 @@ class ButtonsWorld(gym.Env):
             name += 'bow'
         if self.most_used:
             name += 'mu'
-        name += '-' + self.code
+        name += '-' + self.code + '-' + str(time)
         return name
 
 
