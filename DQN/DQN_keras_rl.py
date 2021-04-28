@@ -21,6 +21,8 @@ from tensorflow.keras.optimizers import Adam
 matplotlib.use('Agg')
 
 
+# This code is based on
+# https://github.com/GavinRens/LearningMealyRewardMachines/blob/master/src/DQN_baseline/Q_learning_kerasrl.py
 class Trainer:
     def __init__(self, env=None, user_input=None):
         self.N_EPISODES = 500
