@@ -31,7 +31,7 @@ def main():
 
     # Construct a list of lists which are the arguments for the experiments.
     all_args = []
-    for i in range(5):
+    for i in range(3):
         for setting in settings:
             trainer = Trainer(env='ButtonsWorld-v0')
             args = [trainer] + setting

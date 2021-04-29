@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1232|32' # The code barry has to learn
+CODE = '12|33|11|23' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -292,7 +292,7 @@ class ButtonsWorld(gym.Env):
 
 
     def get_name(self):
-        time = datetime.now().strftime('%H:%M %d-%m-%Y')
+        time = datetime.now().strftime('%H:%M:%S:%f %d-%m-%Y')
         name = POLICY + str(self.episode_length)
         if self.n_states:
             name += f'States:{self.nb_prev_states}'

@@ -94,7 +94,7 @@ def plot_specific_graphs(directory):
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    step = 5
+    step = 10
     x_values = np.arange(0, max(map(len, y_values.values())), step)
 
     first = y_values['(500)Episode-Length:75-Toggle:0-States:5-BoW:0-StepSize:1-14:55 16-04-2021.csv']
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/SequenceLength/3"
+    data_directory = "./ButtonsWorld-v0/ORGates/3"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \
