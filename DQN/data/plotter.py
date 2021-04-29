@@ -62,7 +62,7 @@ def plot_all(directory, step=5):
 def plot_all_with_err(directory):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    step = 15
+    step = 5
     data = os.listdir(directory)
     for index, dir in enumerate(data):
         y_values = read_data_to_array(f"{directory}/{dir}")
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/ORGates/3"
+    data_directory = "./ButtonsWorld-v0/SequenceLength/3"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \
