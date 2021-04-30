@@ -292,7 +292,7 @@ class ButtonsWorld(gym.Env):
 
 
     def get_name(self):
-        time = datetime.now().strftime('%H:%M %d-%m-%Y')
+        time = datetime.now().strftime('%H:%M:%S:%f %d-%m-%Y')
         name = POLICY + str(self.episode_length)
         if self.n_states:
             name += f'States:{self.nb_prev_states}'

@@ -62,7 +62,7 @@ def plot_all(directory, step=5):
 def plot_all_with_err(directory):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    step = 15
+    step = 5
     data = os.listdir(directory)
     for index, dir in enumerate(data):
         y_values = read_data_to_array(f"{directory}/{dir}")
@@ -94,7 +94,7 @@ def plot_specific_graphs(directory):
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    step = 5
+    step = 10
     x_values = np.arange(0, max(map(len, y_values.values())), step)
 
     first = y_values['(500)Episode-Length:75-Toggle:0-States:5-BoW:0-StepSize:1-14:55 16-04-2021.csv']
