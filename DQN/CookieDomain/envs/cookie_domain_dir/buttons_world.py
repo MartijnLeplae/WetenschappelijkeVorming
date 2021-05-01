@@ -15,7 +15,7 @@ BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
 BARRY_START = 0
-BUTTONS = [100, 200, 300]
+BUTTONS = [100, 200, 300, 400, 500, 600]  # [100, 200, 300]  # [100, 200]  # 
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
@@ -41,7 +41,7 @@ N_STATES = False  # add normal history of length n_prev_states?
 MOST_USED = False  # add most used action?
 BOW = False  # add a Bag-off-words?
 INTERVAL = True  # add self.interval of history of n_prev_states with one state skipped?
-EPISODE_LENGTH = 75
+EPISODE_LENGTH = 75  # 300
 
 
 """

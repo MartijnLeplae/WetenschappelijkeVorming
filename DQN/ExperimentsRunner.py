@@ -5,9 +5,10 @@ Parameters = [
     [False, True, False, False],  # bow
     [False, False, False, True],  # interval
     [False, True, False, True],   # interval-bow
+    [True, False, False, False],  # states
     [True, True, False, False]    # states-bow
 ]
-CODE = '121122'
+CODE = '121'  # '121122212'  # '121122'  #   # 
 
 for parameters in Parameters:
     for _ in range(10):

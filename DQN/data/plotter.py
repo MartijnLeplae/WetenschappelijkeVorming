@@ -81,7 +81,6 @@ def plot_all_with_err(directory, step=10):
         #                 np.add(y_mean_new, y_err_new),
         #                 color=colors[index][0], alpha=0.2) #label="Standaardafwijking"
         plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}")
-    plt.plot()
     plt.legend(title="Legenda", loc="lower right")
     plt.show()
 
