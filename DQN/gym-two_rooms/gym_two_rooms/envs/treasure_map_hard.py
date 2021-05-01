@@ -74,14 +74,14 @@ class TreasureMapHardEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 100  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length =  75  # 25  # len(self.sequence)  # Nb of actions in one episode
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
         self.TOGGLE = 0
-        self.step_size = 1
+        self.step_size = 2
 
-        self.nb_BOW_states = math.floor(self.TOGGLE * self.repr_length)
+        self.nb_BOW_states = 5  # math.floor(self.TOGGLE * self.repr_length)
         self.nb_regular_states = self.repr_length - self.nb_BOW_states
 
         # When a move doesn't generate an observation -> only interactions generate observations:
@@ -103,14 +103,18 @@ class TreasureMapHardEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = True
+        self.use_in_place_repr = False
 
         self.N_STATES = False
-        self.BOW = True
-        self.MOST_USED = True
+        self.BOW = False
+        self.MOST_USED = False
         self.INTERVAL = True
 
+        if not self.use_in_place_repr:
+            self.construct_repr_length()
+
     def construct_repr_length(self):
+        self.repr_length = 0
         if self.N_STATES:
             self.repr_length += NB_PREV_STATES
         if self.BOW:
@@ -119,6 +123,8 @@ class TreasureMapHardEnv(gym.Env):
             self.repr_length += 1
         if self.INTERVAL:
             self.repr_length += NB_PREV_STATES
+        self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
+
 
     def set_user_parameters(self, **params: dict):
         """
@@ -371,8 +377,7 @@ class TreasureMapHardEnv(gym.Env):
 
     def get_name(self):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
-        return f'Episode-Length:{self.episode_length}-' \
-               + f'Toggle:{self.TOGGLE}-' \
+        return f'EpsLen:{self.episode_length}-' \
                + f'States:{self.repr_length - self.nb_BOW_states}-' \
                + f'BoW:{self.nb_BOW_states}-' \
                + f'StepSize:{self.step_size}-' \
