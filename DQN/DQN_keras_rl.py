@@ -25,7 +25,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 2000
+        self.N_EPISODES = 500
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -122,7 +122,7 @@ class Trainer:
 
     def start(self, save=False):
         self.init_agent()
-        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=1)
+        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=0)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
         if save:
             self.save_model()
