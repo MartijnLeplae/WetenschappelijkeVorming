@@ -24,7 +24,7 @@ EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 RESET_PENALTY = -2
 
-NB_PREV_STATES = 6
+NB_PREV_STATES = 5  # 6
 
 
 # TODO
@@ -75,7 +75,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 15  # 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 2
@@ -93,12 +93,12 @@ class TreasureMapEnv(gym.Env):
 
         # Use the get_state_repr method that uses a constant array size, or add extra elements to repr according to
         # the variables set underneath?
-        self.use_in_place_repr = True  # False
+        self.use_in_place_repr = False  # False
 
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
-        self.N_STATES = True  # False
+        self.N_STATES = False  # False
         self.BOW = True  # False
         self.MOST_USED = False  # False
         self.INTERVAL = False  # True
@@ -384,12 +384,25 @@ class TreasureMapEnv(gym.Env):
                    + f'StepSize:{self.step_size}-' \
                    + f'{time}'
         else:
-            return f'BASELINE_BOW-' \
-                + f'EpsLen:{self.episode_length}-' \
-                + f'N_States:{self.N_STATES}-' \
-                + f'BoW:{self.BOW}-' \
-                + f'Interval:{self.INTERVAL}-' \
-                + f'MU:{self.MOST_USED}-' \
-                + f'{time}'
+            name = 'epsgr' + str(self.episode_length)
+            if self.N_STATES:
+                name += f'States:{self.repr_length}'
+            if self.INTERVAL:
+                name += f'interval:{self.repr_length}'
+            if self.BOW:
+                name += 'bow'
+            if self.MOST_USED:
+                name += 'mu'
+            name += '-' + time
+            return name
+
+#            return f'BASELINE_BOW-' \
+#                + f'EpsLen:{self.episode_length}-' \
+#                + f'N_States:{self.N_STATES}:{self.repr_length}-' \
+#                + f'BoW:{self.BOW}-' \
+#                + f'Interval:{self.INTERVAL}-' \
+#                + f'MU:{self.MOST_USED}-' \
+#                + f'HIST_SUM:{self.HISTORY_SUM}-' \
+#                + f'{time}'
 
 # + f'Toggle:{self.TOGGLE}-'
