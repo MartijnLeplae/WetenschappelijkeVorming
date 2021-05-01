@@ -3,7 +3,7 @@ import traceback
 from functools import reduce
 from operator import mul
 
-import gym_two_rooms.envs
+#import gym_two_rooms.envs
 import envs
 #from WetenschappelijkeVorming.DQN.DQN_keras_rl import Trainer
 from DQN_keras_rl import Trainer

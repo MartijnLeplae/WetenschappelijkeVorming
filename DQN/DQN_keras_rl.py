@@ -25,7 +25,7 @@ import argparse
 
 class Trainer:
     def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 500
+        self.N_EPISODES = 2000
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
         dir_path = os.path.dirname(os.path.realpath(__file__))
