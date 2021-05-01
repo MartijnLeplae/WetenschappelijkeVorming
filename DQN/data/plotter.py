@@ -224,6 +224,18 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
     plt.show()
 
 
+def plot_one(directory, step=5):
+    y_values = []
+    with open(directory, mode='r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            y_values.append([float(x) for x in row])
+    x_values = np.arange(0, len(y_values[0]), step)
+    y_values_stepped = y_values[0][::step]
+    plt.plot(x_values, y_values_stepped)
+    plt.show()
+
+
 if __name__ == '__main__':
     # Set default save directory
     matplotlib.rcParams["savefig.directory"] = "../../finishedGraphs"
@@ -237,12 +249,13 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 24})
 
     # Directory that contains data to be plotted
-    data_directory = "./TreasureMapHard-v0/reprExperiment"
-    baseline_directory = "./TreasureMapHard-v0/states75"
+    data_directory = "./TreasureMap-v0/states15"
+    baseline_directory = "./TreasureMap-v0/Baseline:StatesOnly75"
     plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
                  + '\n' \
                  + r'\#Observaties $= 6$ + Geschiedenis som'
 
     # plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
-    plot_all(data_directory)
+    plot_one("./TreasureMap-v0/(500)epsgr20bow-19:16 01-05-2021.csv")
+    # plot_all(data_directory)
     # plot_specific_graphs("./TreasureMap-v0/test")

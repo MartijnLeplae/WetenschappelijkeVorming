@@ -181,9 +181,14 @@ class Trainer:
             save_path = os.path.join('data', self.ENV, subdir, self.name + ".csv")
         else:
             save_path = os.path.join('data', self.ENV, self.name + ".csv")
-        with open(save_path, mode='w') as f:
-            writer = csv.writer(f)
-            writer.writerow(self.episode_reward)
+        try:
+            with open(save_path, mode='w') as f:
+                writer = csv.writer(f)
+                writer.writerow(self.episode_reward)
+        except OSError:
+            with open(os.path.join('data', self.ENV, self.name + ".csv"), mode='w') as f:
+                writer = csv.writer(f)
+                writer.writerow(self.episode_reward)
 
 
 if __name__ == '__main__':

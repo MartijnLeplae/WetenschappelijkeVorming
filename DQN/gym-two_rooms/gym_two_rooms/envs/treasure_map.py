@@ -24,7 +24,8 @@ EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 RESET_PENALTY = -2
 
-NB_PREV_STATES = 5  # 6
+NB_PREV_STATES = 3  # 5  # 6
+
 
 
 # TODO
@@ -75,7 +76,7 @@ class TreasureMapEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 15  # 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = 20  # 300  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
 
         self.TOGGLE = 0
         self.step_size = 2

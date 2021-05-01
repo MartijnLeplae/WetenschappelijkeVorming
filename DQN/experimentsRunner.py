@@ -8,14 +8,14 @@ Parameters = {
     'states1':       [True, False, False, False],  # states
     'states-bow1':   [True, True, False, False]    # states-bow
 }
-CODE = '121'  # '121122212'  # '121122'  #   #
+# CODE = '121'  # '121122212'  # '121122'  #   #
 
 for name, parameters in Parameters.items():
     for _ in range(10):
         trainer = Trainer('TreasureMapHard-v0')
         n_states, bow, most_used, interval = parameters
         trainer.env.set_user_parameters(n_states=n_states, bow=bow, most_used=most_used,
-                                        interval=interval, code=CODE)
+                                        interval=interval)
         trainer.start()
         try:
             trainer.save_data(subdir=name)
