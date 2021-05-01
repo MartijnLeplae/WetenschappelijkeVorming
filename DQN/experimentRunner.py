@@ -24,20 +24,11 @@ settings = [[True, False, False, False],
 
 
 def main():
-    # jobs = []
-    # for i in range(5):
-    #     for setting in settings:
-    #         trainer = Trainer(env='ButtonsWorld-v0')
-    #         args = [trainer] + setting
-    #         jobs.append(multiprocessing.Process(target=do_experiment, args=args))
-    #     for job in jobs:
-    #         job.start()
-
     # Construct a list of lists which are the arguments for the experiments.
-    sequences = ['121', '121122212', '121122212']
+    sequences = ['121', '121122', '121122212']
     all_args = []
     for seq in sequences:
-        for i in range(10):
+        for i in range(6):
             for setting in settings:
                 trainer = Trainer(env='ButtonsWorld-v0')
                 args = [trainer] + setting + [seq]
