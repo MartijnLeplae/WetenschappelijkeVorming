@@ -20,13 +20,13 @@ LIGHT_PURPLE = "#F557FF"
 BLACK = "#000000"
 GRAY = "#7D7D7D"
 YELLOW = "#F7FF00"
-LIGHT_YELLOW = "#FDFFAC"
+LIGHT_YELLOW = "#b7ba10ff"
 DARK_GREEN = "#006633"
 
 
 colors = [[LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
           [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
-          [GRAY, BLACK], [LIGHT_YELLOW, YELLOW], [DARK_GREEN, DARK_GREEN]]
+          [GRAY, BLACK], [LIGHT_YELLOW, LIGHT_YELLOW], [DARK_GREEN, DARK_GREEN]]
 
 
 def read_data_to_array(directory, step=1):
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/MostUsed/"
+    data_directory = "./ButtonsWorld-v0/SequenceLength/3/75"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \

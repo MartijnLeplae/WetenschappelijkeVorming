@@ -2,7 +2,7 @@ from DQN_keras_rl import Trainer
 import multiprocessing
 
 
-def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=False, interval=False, n_prev=3, seq=None):
+def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=False, interval=False, seq=None, n_prev=3):
     buttons_trainer.env.reset()
     if seq is not None:
         buttons_trainer.env.code = seq
@@ -14,11 +14,11 @@ def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=Fa
     print(f'[FINISHED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
 
 
-settings = [#[True, False, False, False],
-#             [True, False, True, False],
-#             [False, False, True, False],
-#             [False, False, True, True],
-#             [False, False, False, True],
+settings = [[True, False, False, False],
+            [True, False, True, False],
+            [False, False, True, False],
+            [False, False, True, True],
+            [False, False, False, True],
             [True, True, False, False],
             [False, True, False, True]]
 
@@ -34,12 +34,14 @@ def main():
     #         job.start()
 
     # Construct a list of lists which are the arguments for the experiments.
+    sequences = ['121', '121122212', '121122212']
     all_args = []
-    for i in range(10):
-        for setting in settings:
-            trainer = Trainer(env='ButtonsWorld-v0')
-            args = [trainer] + setting
-            all_args.append(args)
+    for seq in sequences:
+        for i in range(10):
+            for setting in settings:
+                trainer = Trainer(env='ButtonsWorld-v0')
+                args = [trainer] + setting + [seq]
+                all_args.append(args)
 
     # Execute all the experiments using the Pool() to distribute the processes over all the available cores. You can
     # also specify a max number of cores to be used if you specify this in the Pool() object as such-> e.g.: Pool(5)

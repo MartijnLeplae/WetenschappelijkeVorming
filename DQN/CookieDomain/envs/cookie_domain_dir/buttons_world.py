@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '121' # The code barry has to learn
+CODE = '121122212' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
@@ -106,6 +106,7 @@ class ButtonsWorld(gym.Env):
         if self.interval:
             self.repr_length += self.nb_prev_states
         self.observation_space = self.repr_length
+        self.reward_state = rewardState(self.code)
 
     def set_user_parameters(self, **params: dict):
         """
