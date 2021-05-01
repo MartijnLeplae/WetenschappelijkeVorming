@@ -5,7 +5,7 @@ import sys
 
 # Do NOT remove the following two imports: they import the custom environments.
 import envs
-import gym_two_rooms.envs
+#import gym_two_rooms.envs
 
 import gym
 import matplotlib
