@@ -173,11 +173,14 @@ class Trainer:
                 plt.savefig(save_path + ".png")
         # plt.show()
 
-    def save_data(self):
+    def save_data(self, subdir=None):
         if self.episode_reward is None:
             print("You should call save_data after training. No data present for reward/episode")
             return
-        save_path = os.path.join('data', self.ENV, self.name + ".csv")
+        if subdir:
+            save_path = os.path.join('data', self.ENV, subdir, self.name + ".csv")
+        else:
+            save_path = os.path.join('data', self.ENV, self.name + ".csv")
         with open(save_path, mode='w') as f:
             writer = csv.writer(f)
             writer.writerow(self.episode_reward)
