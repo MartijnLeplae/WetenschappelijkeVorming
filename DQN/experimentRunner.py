@@ -2,8 +2,10 @@ from DQN_keras_rl import Trainer
 import multiprocessing
 
 
-def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=False, interval=False, n_prev=3):
+def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=False, interval=False, n_prev=3, seq=None):
     buttons_trainer.env.reset()
+    if seq is not None:
+        buttons_trainer.env.code = seq
     print(f'[STARTED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
     buttons_trainer.env.set_user_parameters(n_states=state, bow=bow, most_used=most_used,
                                             interval=interval, nb_prev_states=n_prev)
@@ -12,11 +14,13 @@ def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=Fa
     print(f'[FINISHED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
 
 
-settings = [[True, False, False, False],
-            [True, False, True, False],
-            [False, False, True, False],
-            [False, False, True, True],
-            [False, False, False, True]]
+settings = [#[True, False, False, False],
+#             [True, False, True, False],
+#             [False, False, True, False],
+#             [False, False, True, True],
+#             [False, False, False, True],
+            [True, True, False, False],
+            [False, True, False, True]]
 
 
 def main():

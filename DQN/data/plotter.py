@@ -21,10 +21,12 @@ BLACK = "#000000"
 GRAY = "#7D7D7D"
 YELLOW = "#F7FF00"
 LIGHT_YELLOW = "#FDFFAC"
+DARK_GREEN = "#006633"
+
 
 colors = [[LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
           [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
-          [GRAY, BLACK], [LIGHT_YELLOW, YELLOW]]
+          [GRAY, BLACK], [LIGHT_YELLOW, YELLOW], [DARK_GREEN, DARK_GREEN]]
 
 
 def read_data_to_array(directory, step=1):
@@ -77,8 +79,8 @@ def plot_all_with_err(directory, step=10):
         spl2 = make_interp_spline(x_values, y_mean_stepped)
         y_err_new = spl1(x_new)
         y_mean_new = spl2(x_new)
-        # ax.fill_between(x_new, np.subtract(y_mean_new, y_err_new),
-        #                 np.add(y_mean_new, y_err_new),
+        # ax.fill_between(x_values, np.subtract(y_mean_stepped, y_err_stepped),
+        #                 np.add(y_mean_stepped, y_err_stepped),
         #                 color=colors[index][0], alpha=0.2) #label="Standaardafwijking"
         plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}")
     plt.legend(title="Legenda", loc="lower right")
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/ORGates/1"
+    data_directory = "./ButtonsWorld-v0/MostUsed/"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \
