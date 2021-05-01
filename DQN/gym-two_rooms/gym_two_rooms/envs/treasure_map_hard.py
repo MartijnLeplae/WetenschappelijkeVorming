@@ -114,7 +114,7 @@ class TreasureMapHardEnv(gym.Env):
             self.construct_repr_length()
 
     def construct_repr_length(self):
-        self.repr_length = 0
+        self.repr_length = len(ITEMS)
         if self.N_STATES:
             self.repr_length += NB_PREV_STATES
         if self.BOW:
@@ -219,10 +219,10 @@ class TreasureMapHardEnv(gym.Env):
             elif room == CENTER_ROOM:  # Map room, agent does NOT start off with map in its self.acquired_items.
                 if MAP not in self.acquired_items:
                     reward = ACQUIRED_ITEM
+                    self.acquired_items.append(MAP)
+                    self.state.append(MAP)
                 else:
                     reward = DUPLICATE_ITEM
-                self.acquired_items.append(MAP)
-                self.state.append(MAP)
             elif room == RIGHT_ROOM:  # Equipment room, agent does NOT start off with map in its self.acquired_items.
                 if MAP in self.acquired_items:
                     if EQUIPMENT not in self.acquired_items:
@@ -230,7 +230,7 @@ class TreasureMapHardEnv(gym.Env):
                             reward = ACQUIRED_ITEM
                         else:
                             # Obtaining EQUIPMENT when already having a GUIDE is inefficient
-                            reward = NEUTRAL_ACTION
+                            reward = NEUTRAL_ACTION+1
                         self.acquired_items.append(EQUIPMENT)
                         self.state.append(EQUIPMENT)
                     else:

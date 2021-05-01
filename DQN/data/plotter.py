@@ -237,12 +237,12 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 24})
 
     # Directory that contains data to be plotted
-    data_directory = "./TreasureMap-v0/Baseline:BOW300/"
-    baseline_directory = "./TreasureMap-v0/Baseline:StatesOnly300"
+    data_directory = "./TreasureMapHard-v0/reprExperiment"
+    baseline_directory = "./TreasureMapHard-v0/states75"
     plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
                  + '\n' \
                  + r'\#Observaties $= 6$ + Geschiedenis som'
 
-    plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
-    # plot_all(data_directory)
+    # plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
+    plot_all(data_directory)
     # plot_specific_graphs("./TreasureMap-v0/test")
