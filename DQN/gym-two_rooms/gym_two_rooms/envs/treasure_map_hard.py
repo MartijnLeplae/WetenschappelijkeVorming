@@ -26,7 +26,7 @@ EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 
 # History length
-NB_PREV_STATES = 5
+NB_PREV_STATES = 3  # 5
 
 
 # TODO
@@ -105,10 +105,10 @@ class TreasureMapHardEnv(gym.Env):
         # the variables set underneath?
         self.use_in_place_repr = False
 
-        self.N_STATES = False
+        self.N_STATES = True
         self.BOW = False
         self.MOST_USED = False
-        self.INTERVAL = True
+        self.INTERVAL = False
 
         if not self.use_in_place_repr:
             self.construct_repr_length()
@@ -377,8 +377,18 @@ class TreasureMapHardEnv(gym.Env):
 
     def get_name(self):
         time = datetime.now().strftime('%H:%M %d-%m-%Y')
-        return f'EpsLen:{self.episode_length}-' \
-               + f'States:{self.repr_length - self.nb_BOW_states}-' \
-               + f'BoW:{self.nb_BOW_states}-' \
-               + f'StepSize:{self.step_size}-' \
-               + f'{time}'
+        if self.use_in_place_repr:
+            return f'EpsLen:{self.episode_length}-' \
+                   + f'States:{self.repr_length - self.nb_BOW_states}-' \
+                   + f'BoW:{self.nb_BOW_states}-' \
+                   + f'StepSize:{self.step_size}-' \
+                   + f'{time}'
+        else:
+            return f'EpsLen:{self.episode_length}-' \
+                   + f'N_States:{self.N_STATES}:{self.repr_length}-' \
+                   + f'BoW:{self.BOW}-' \
+                   + f'Interval:{self.INTERVAL}-' \
+                   + f'MU:{self.MOST_USED}-' \
+                   + f'{time}'
+
+            
