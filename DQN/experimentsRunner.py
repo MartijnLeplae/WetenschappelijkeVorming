@@ -16,6 +16,11 @@ for name, parameters in Parameters.items():
         n_states, bow, most_used, interval = parameters
         trainer.env.set_user_parameters(N_STATES=n_states, BOW=bow, MOST_USED=most_used,
                                         INTERVAL=interval)
+        if type(trainer.env.observation_space) == int:
+            trainer.state_size = (trainer.env.observation_space,)  # (self.env.observation_space.n,)  #
+        else:
+            trainer.state_size = (trainer.env.observation_space.n,)
+
         trainer.start()
         try:
             trainer.save_data(subdir=name)
