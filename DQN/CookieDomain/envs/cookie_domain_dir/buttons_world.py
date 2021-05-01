@@ -106,6 +106,7 @@ class ButtonsWorld(gym.Env):
         if self.interval:
             self.repr_length += self.nb_prev_states
         self.observation_space = self.repr_length
+        self.reward_state = rewardState(self.code)
 
     def set_user_parameters(self, **params: dict):
         """
