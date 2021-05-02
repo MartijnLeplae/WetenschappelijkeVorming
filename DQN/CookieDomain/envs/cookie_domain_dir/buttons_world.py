@@ -15,7 +15,7 @@ BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
 BARRY_START = 0
-BUTTONS = [100, 200, 300] # [100, 200, 300, 400, 500, 600]  # [100, 200, 300]  # [100, 200]  #
+BUTTONS = [100, 200] # [100, 200, 300, 400, 500, 600]  # [100, 200, 300]  # [100, 200]  #
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
@@ -27,7 +27,7 @@ WORLD_COLOR = WHITE
 BARRY_COLOR = PINK
 BUTTONS_COLOR = [BLUE, RED, GREEN]
 ################
-CODE = '1231232' # The code barry has to learn
+CODE = '1' # The code barry has to learn
 # REWARD VARIABLES
 BASE = 0
 UNVALID_ACTION = -1
