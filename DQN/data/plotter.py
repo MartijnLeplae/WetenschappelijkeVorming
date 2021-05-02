@@ -15,15 +15,26 @@ LIGHT_GREEN = "#00c200"  # "#30eab2"
 PALE_BLUE = "#d6ecfa"
 LIGHT_PINK = "#ff8ac4"  # "#ff1fff"
 DARK_PINK = "#a300a3"
++DARK_PURPLE = "#EF00FF"
++LIGHT_PURPLE = "#F557FF"
++BLACK = "#000000"
++GRAY = "#7D7D7D"
++YELLOW = "#F7FF00"
++LIGHT_YELLOW = "#b7ba10ff"
++DARK_GREEN = "#006633"
+
+colors = [[LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
+          [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
+          [GRAY, BLACK], [LIGHT_YELLOW, LIGHT_YELLOW], [DARK_GREEN, DARK_GREEN]]
 
 
-def read_data_to_array(directory):
+def read_data_to_array(directory, step=1):
     y_values = []
     for filename in os.listdir(directory):
         with open(directory + os.sep + filename, mode='r') as f:
             reader = csv.reader(f)
             for row in reader:
-                y_values.append([float(x) for x in row])
+                y_values.append([float(row[x]) for x in range(0, len(row), step)])
     return y_values
 
 
@@ -37,10 +48,9 @@ def read_data_to_dict(directory):
     return y_values
 
 
-def plot_all(directory):
+def plot_all(directory, step=5):
     y_values = read_data_to_array(directory)
     plt.figure(1)
-    step = 5
     data = os.listdir(directory)
     x_values = np.arange(0, max(map(len, y_values)), step)
     for index, ys in enumerate(y_values):
@@ -111,7 +121,8 @@ def plot_all_in_place_combinations300():
     ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped), np.add(y_mean_stepped, y_err_stepped),
                     color=LIGHT_BLUE, label=r"(Groep $b$): Standaardafwijking", alpha=0.2)
     plt.plot(x_values_stepped, y_mean_stepped, color=DARK_BLUE, label=r"(Groep $b$): Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='gray', linestyle='dotted', label=fr"(Groep $b$): Totaal Gemiddelde: {int(overall_mean)}")
+    plt.axhline(y=overall_mean, color='gray', linestyle='dotted',
+                label=fr"(Groep $b$): Totaal Gemiddelde: {int(overall_mean)}")
     # plt.text(plt.gca().get_xlim()[0]+0.5, overall_mean+0.1, str(round(overall_mean, 1)))
     # plt.yticks(list(plt.yticks()[0]) + [overall_mean])
 
@@ -129,7 +140,8 @@ def plot_all_in_place_combinations300():
     ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped), np.add(y_mean_stepped, y_err_stepped),
                     color=LIGHT_PINK, label=r"(Groep $a$): Standaardafwijking", alpha=0.1)
     plt.plot(x_values_stepped, y_mean_stepped, color="#ff0f87", label=r"(Groep $a$): Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='red', linestyle='dotted', label=fr"(Groep $a$): Totaal Gemiddelde: {int(overall_mean)}")
+    plt.axhline(y=overall_mean, color='red', linestyle='dotted',
+                label=fr"(Groep $a$): Totaal Gemiddelde: {int(overall_mean)}")
     # plt.text(plt.gca().get_xlim()[0]+0.5, overall_mean+0.1, str(round(overall_mean, 1)))
     # plt.yticks(list(plt.yticks()[0]) + [overall_mean])
 
@@ -155,13 +167,7 @@ def plot_all_in_place_combinations300():
     # legend.get_frame().set_facecolor(PALE_BLUE)
     # legend.get_frame().set_edgecolor('black')
 
-    plot_baseline()
-
     plt.show()
-
-
-def plot_baseline():
-    pass
 
 
 def plot_mean_and_error(directory, baseline_directory, title, data_name="", step=5):
@@ -189,9 +195,12 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
     # Plotting
     # ax.errorbar(x_values_stepped, y_mean_stepped, y_err_stepped)
     ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped), np.add(y_mean_stepped, y_err_stepped),
-                    color=LIGHT_BLUE, label=f"{data_name} Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}", alpha=0.2)
+                    color=LIGHT_BLUE,
+                    label=f"{data_name} Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}",
+                    alpha=0.2)
     plt.plot(x_values_stepped, y_mean_stepped, color=DARK_BLUE, label=f"{data_name} Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='red', linestyle='dotted', label=f"{data_name} Totaal gemiddelde: {int(overall_mean)}")
+    plt.axhline(y=overall_mean, color='red', linestyle='dotted',
+                label=f"{data_name} Totaal gemiddelde: {int(overall_mean)}")
     # plt.text(plt.gca().get_xlim()[0]+0.5, overall_mean+0.1, str(round(overall_mean, 1)))
     # plt.yticks(list(plt.yticks()[0]) + [overall_mean])
 
@@ -207,9 +216,12 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
     overall_mean = np.nanmean(y_mean)
 
     ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped), np.add(y_mean_stepped, y_err_stepped),
-                    color=LIGHT_GREEN1, label=f"(Baseline) Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}", alpha=0.4)
+                    color=LIGHT_GREEN1,
+                    label=f"(Baseline) Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}",
+                    alpha=0.4)
     plt.plot(x_values_stepped, y_mean_stepped, color=LIGHT_GREEN, label="(Baseline) Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='#ffff5c', linestyle='dotted', label=f"(Baseline) Totaal gemiddelde: {int(overall_mean)}")
+    plt.axhline(y=overall_mean, color='#ffff5c', linestyle='dotted',
+                label=f"(Baseline) Totaal gemiddelde: {int(overall_mean)}")
 
     # Code to sort legend entries:
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -221,6 +233,34 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
     # legend.get_frame().set_facecolor(PALE_BLUE)
     # legend.get_frame().set_edgecolor('black')
 
+    plt.show()
+
+
+def plot_all_with_err(directory, plot_title="Plot", step=10):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    data = os.listdir(directory)
+    for index, dir in enumerate(data):
+        y_values = read_data_to_array(f"{directory}/{dir}")
+        x_values = np.arange(0, max(map(len, y_values)), step)
+        y_err = np.nanstd(y_values, axis=0)
+        y_mean = np.nanmean(y_values, axis=0)
+        y_err_stepped = y_err[::step]
+        y_mean_stepped = y_mean[::step]
+        # overall_mean = np.nanmean(y_mean)
+        x_new = np.linspace(x_values.min(), x_values.max(), 200)
+        spl1 = make_interp_spline(x_values, y_err_stepped)
+        spl2 = make_interp_spline(x_values, y_mean_stepped)
+        y_err_new = spl1(x_new)
+        y_mean_new = spl2(x_new)
+        # ax.fill_between(x_values, np.subtract(y_mean_stepped, y_err_stepped),
+        #                 np.add(y_mean_stepped, y_err_stepped),
+        #                 color=colors[index][0], alpha=0.2) #label="Standaardafwijking"
+        plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}")
+    plt.legend(title="Legenda", loc="lower right")
+    plt.title(plot_title)
+    plt.xlabel("Aantal episdes")
+    plt.ylabel("Verkregen beloning")
     plt.show()
 
 

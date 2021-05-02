@@ -10,7 +10,7 @@ LEFT, RIGHT, UP, DOWN, INTERACT, RESET = 0, 1, 2, 3, 4, 5
 
 # map rooms to corresponding numbers, too
 TOP_ROOM, LEFT_ROOM, CENTER_ROOM, RIGHT_ROOM, BOTTOM_ROOM = 0, 1, 2, 3, 4
-ROOMS = [TOP_ROOM, LEFT_ROOM, CENTER_ROOM, RIGHT_ROOM, BOTTOM_ROOM ]
+ROOMS = [TOP_ROOM, LEFT_ROOM, CENTER_ROOM, RIGHT_ROOM, BOTTOM_ROOM]
 
 # Variable names for the items:
 # TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY = 'treasure', 'guide', 'map', 'equipment', 'jewelry'
@@ -19,19 +19,16 @@ ITEMS = [TREASURE, GUIDE, MAP, EQUIPMENT, JEWELRY]
 
 # Rewards
 INVALID_ACTION = DUPLICATE_ITEM = -2
-MOVE = -1
+MOVE = -1  # -1
 ACQUIRED_ITEM = 2
-NEUTRAL_ACTION = 0
+INEFFICIENTLY_ACQUIRED_ITEM = 1
 EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 
 # History length
-NB_PREV_STATES = 3  # 5
-
-
-# TODO
-#  Remove map as given item at start to increase difficulty (when the easy version works).
-#  Let the agent start off in a random room
+NB_PREV_STATES = 3  # 3
+# Number of steps per episode
+EPISODE_LENGTH = 70
 
 
 class TreasureMapHardEnv(gym.Env):
@@ -74,7 +71,7 @@ class TreasureMapHardEnv(gym.Env):
         self.state = []
         self.nb_rooms = 5
         self.steps_taken = 0
-        self.episode_length = 30 # 100  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
+        self.episode_length = EPISODE_LENGTH  # 100  # 75  # 25  # len(self.sequence)  # Nb of actions in one episode
         # Ideally, the agent would only need to take 3 actions to sell a treasure.
         self.repr_length = NB_PREV_STATES
 
@@ -106,7 +103,7 @@ class TreasureMapHardEnv(gym.Env):
         self.use_in_place_repr = False
 
         self.N_STATES = True
-        self.BOW = False
+        self.BOW = True
         self.MOST_USED = False
         self.INTERVAL = False
 
@@ -124,7 +121,6 @@ class TreasureMapHardEnv(gym.Env):
         if self.INTERVAL:
             self.repr_length += NB_PREV_STATES
         self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
-
 
     def set_user_parameters(self, **params: dict):
         """
@@ -209,7 +205,7 @@ class TreasureMapHardEnv(gym.Env):
                         else:
                             # already has EQUIPMENT, but not GUIDE
                             # Obtaining GUIDE when already having EQUIPMENT is not efficient
-                            reward = NEUTRAL_ACTION
+                            reward = INEFFICIENTLY_ACQUIRED_ITEM
                         self.acquired_items.append(GUIDE)
                         self.state.append(GUIDE)
                     else:  # Already has guide
@@ -230,7 +226,7 @@ class TreasureMapHardEnv(gym.Env):
                             reward = ACQUIRED_ITEM
                         else:
                             # Obtaining EQUIPMENT when already having a GUIDE is inefficient
-                            reward = NEUTRAL_ACTION+1
+                            reward = INEFFICIENTLY_ACQUIRED_ITEM
                         self.acquired_items.append(EQUIPMENT)
                         self.state.append(EQUIPMENT)
                     else:
@@ -390,5 +386,3 @@ class TreasureMapHardEnv(gym.Env):
                    + f'Interval:{self.INTERVAL}-' \
                    + f'MU:{self.MOST_USED}-' \
                    + f'{time}'
-
-            

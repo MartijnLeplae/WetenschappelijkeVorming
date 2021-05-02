@@ -39,8 +39,8 @@ class Trainer:
             # self.ENV = 'WordsWorld-v0'
             # self.ENV = 'TwoRooms-v0'
             # self.ENV = 'BarryWorld-v0'
-            self.ENV = 'TreasureMap-v0'
-            # self.ENV = 'TreasureMapHard-v0'
+            # self.ENV = 'TreasureMap-v0'
+            self.ENV = 'TreasureMapHard-v0'
 
         try:
             self.env = gym.make(self.ENV)
@@ -210,9 +210,9 @@ if __name__ == '__main__':
     else:
         trainer = Trainer()
     if args.mode == "train":
-        trainer.start(save=True)
+        trainer.start(save=False)
         trainer.plot(save=True)
-        trainer.save_data()
+        # trainer.save_data()
     elif args.mode == "test":
         filepath = "(500)States:3-231.h5"
         if args.weights:
