@@ -106,6 +106,7 @@ class TreasureMapHardEnv(gym.Env):
         self.BOW = True
         self.MOST_USED = False
         self.INTERVAL = False
+        self.HIST_SUM = False
 
         if not self.use_in_place_repr:
             self.construct_repr_length()
@@ -120,6 +121,8 @@ class TreasureMapHardEnv(gym.Env):
             self.repr_length += 1
         if self.INTERVAL:
             self.repr_length += NB_PREV_STATES
+        if self.HIST_SUM:
+            self.repr_length += 1
         self.observation_space = spaces.Discrete(self.repr_length + 1)  # spaces.Discrete(self.repr_length)
 
     def set_user_parameters(self, **params: dict):
@@ -337,6 +340,10 @@ class TreasureMapHardEnv(gym.Env):
             else:
                 return np.array(self.state[-NB_PREV_STATES:])
 
+        def get_hist_sum():
+            bag_of_words = get_bow()
+            return np.array([np.nansum(bag_of_words)])
+
         # Current implementation returns a np array of size self.repr_length
         # if the current state is smaller than the repr_length it is
         # filled with extra '0s' (=empty character)
@@ -356,7 +363,10 @@ class TreasureMapHardEnv(gym.Env):
         inter = np.array([])
         if self.INTERVAL:
             inter = get_hist_interval()
-        return np.concatenate([[self.current_room], states, bow, mu, inter])
+        hist_sum = np.array([])
+        if self.HIST_SUM:
+            hist_sum = get_hist_sum()
+        return np.concatenate([[self.current_room], states, bow, mu, inter, hist_sum])
 
     def reset(self):
         self.steps_taken = 0
