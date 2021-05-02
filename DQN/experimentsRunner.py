@@ -12,7 +12,7 @@ Parameters = {
 
 for name, parameters in Parameters.items():
     for _ in range(10):
-        trainer = Trainer('TreasureMap-v0')
+        trainer = Trainer('TreasureMapHard-v0')
         n_states, bow, most_used, interval = parameters
         trainer.env.set_user_parameters(N_STATES=n_states, BOW=bow, MOST_USED=most_used,
                                         INTERVAL=interval)
