@@ -174,10 +174,9 @@ class Trainer:
         # plt.show()
 
     def save_data(self, subdir=None):
-        #if self.episode_reward is None:
-        #    print("You should call save_data after training. No data present for reward/episode")
-        #    return
-        self.episode_reward = [1,2]
+        if self.episode_reward is None:
+            print("You should call save_data after training. No data present for reward/episode")
+            return
         self.name = f'({self.N_EPISODES}){self.env.get_name()}'
         if subdir:
             save_path = os.path.join('data', self.ENV, subdir, self.name + ".csv")
