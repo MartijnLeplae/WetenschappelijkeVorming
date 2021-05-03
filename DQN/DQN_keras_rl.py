@@ -174,9 +174,11 @@ class Trainer:
         # plt.show()
 
     def save_data(self, subdir=None):
-        if self.episode_reward is None:
-            print("You should call save_data after training. No data present for reward/episode")
-            return
+        #if self.episode_reward is None:
+        #    print("You should call save_data after training. No data present for reward/episode")
+        #    return
+        self.episode_reward = [1,2]
+        self.name = f'({self.N_EPISODES}){self.env.get_name()}'
         if subdir:
             save_path = os.path.join('data', self.ENV, subdir, self.name + ".csv")
         else:
@@ -185,7 +187,9 @@ class Trainer:
             with open(save_path, mode='w') as f:
                 writer = csv.writer(f)
                 writer.writerow(self.episode_reward)
+            print(f'Saved in {save_path}')
         except OSError:
+            print(f'Couldn\'t save in {subdir}, saving as {os.path.join("data", self.ENV, self.name + ".csv")}')
             with open(os.path.join('data', self.ENV, self.name + ".csv"), mode='w') as f:
                 writer = csv.writer(f)
                 writer.writerow(self.episode_reward)

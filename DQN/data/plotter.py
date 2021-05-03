@@ -295,11 +295,11 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 24})
 
     # Directory that contains data to be plotted
-    data_directory = "./TreasureMapHard-v0/30/states-bow1"
+    data_directory = "./TreasureMapHard-v0/30/interval-bow1"
     baseline_directory = "./TreasureMapHard-v0/30/states1"
-    plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
+    plot_title = r'Trainen m.b.v. Interval en \textit{vast} geheugen $(N = 10)$:' \
                  + '\n' \
-                 + r'\#Observaties $= 3$ + \#BoW $= 5$'
+                 + r'\#Observaties $= 3$, Stapgrootte $= 2$'
 
     plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
     # plot_all_with_err(data_directory, plot_title=plot_title, step=5)

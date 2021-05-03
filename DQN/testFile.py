@@ -11,5 +11,6 @@ for i in range(10):
     trainer.start()
     try:
         trainer.save_data(subdir='30/hist_sum1')
+        print(f'N_STATES {trainer.env.N_STATES}, BOW: {trainer.env.BOW}, MU: {trainer.env.MOST_USED}, INTERVAL: {trainer.env.INTERVAL}, HIST_SUM: {trainer.env.HIST_SUM}')
     except OSError:
         trainer.save_data()
