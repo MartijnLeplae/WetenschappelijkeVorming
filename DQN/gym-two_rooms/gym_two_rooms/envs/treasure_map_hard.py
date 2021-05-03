@@ -28,7 +28,7 @@ INEFFICIENTLY_SOLD_TREASURE = 4
 # History length
 NB_PREV_STATES = 3  # 3
 # Number of steps per episode
-EPISODE_LENGTH = 40  # 30  # 75
+EPISODE_LENGTH = 30  # 30  # 75
 
 
 class TreasureMapHardEnv(gym.Env):
@@ -102,7 +102,7 @@ class TreasureMapHardEnv(gym.Env):
         # the variables set underneath?
         self.use_in_place_repr = False
 
-        self.N_STATES = True
+        self.N_STATES = False
         self.BOW = True
         self.MOST_USED = False
         self.INTERVAL = False
@@ -390,9 +390,23 @@ class TreasureMapHardEnv(gym.Env):
                    + f'StepSize:{self.step_size}-' \
                    + f'{time}'
         else:
-            return f'EpsLen:{self.episode_length}-' \
-                   + f'N_States:{self.N_STATES}:{self.repr_length}-' \
-                   + f'BoW:{self.BOW}-' \
-                   + f'Interval:{self.INTERVAL}-' \
-                   + f'MU:{self.MOST_USED}-' \
-                   + f'{time}'
+            name = 'epsgr' + str(self.episode_length)
+            if self.N_STATES:
+                name += f'States:{self.repr_length}'
+            if self.INTERVAL:
+                name += f'interval:{self.repr_length}'
+            if self.BOW:
+                name += 'bow'
+            if self.MOST_USED:
+                name += 'mu'
+            if self.HIST_SUM:
+                name += 'hs'
+            name += '-' + time
+            return name
+           #  return f'EpsLen:{self.episode_length}-' \
+           #         + f'N_States:{self.N_STATES}:{self.repr_length}-' \
+           #         + f'BoW:{self.BOW}-' \
+           #         + f'Interval:{self.INTERVAL}-' \
+           #         + f'MU:{self.MOST_USED}-' \
+           #         + f'HS:{self.HIST_SUM}-' \
+           #         + f'{time}'
