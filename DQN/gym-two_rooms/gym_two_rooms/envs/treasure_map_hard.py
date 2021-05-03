@@ -28,7 +28,7 @@ INEFFICIENTLY_SOLD_TREASURE = 4
 # History length
 NB_PREV_STATES = 3  # 3
 # Number of steps per episode
-EPISODE_LENGTH = 70
+EPISODE_LENGTH = 75
 
 
 class TreasureMapHardEnv(gym.Env):
