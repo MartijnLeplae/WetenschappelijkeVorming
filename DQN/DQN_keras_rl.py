@@ -186,6 +186,7 @@ class Trainer:
                 writer = csv.writer(f)
                 writer.writerow(self.episode_reward)
         except OSError:
+            print(f'Couldn\'t save in {subdir}, saving as {os.path.join("data", self.ENV, self.name + ".csv")}')
             with open(os.path.join('data', self.ENV, self.name + ".csv"), mode='w') as f:
                 writer = csv.writer(f)
                 writer.writerow(self.episode_reward)

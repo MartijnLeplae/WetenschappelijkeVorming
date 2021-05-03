@@ -7,5 +7,8 @@ for i in range(10):
         trainer.state_size = (trainer.env.observation_space,)  # (self.env.observation_space.n,)  #
     else:
         trainer.state_size = (trainer.env.observation_space.n,)
-    trainer.start()
-    trainer.save_data()
+    # trainer.start()
+    try:
+        trainer.save_data('hist_sum1')
+    except OSError:
+        trainer.save_data()
