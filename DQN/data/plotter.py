@@ -15,13 +15,13 @@ LIGHT_GREEN = "#00c200"  # "#30eab2"
 PALE_BLUE = "#d6ecfa"
 LIGHT_PINK = "#ff8ac4"  # "#ff1fff"
 DARK_PINK = "#a300a3"
-+DARK_PURPLE = "#EF00FF"
-+LIGHT_PURPLE = "#F557FF"
-+BLACK = "#000000"
-+GRAY = "#7D7D7D"
-+YELLOW = "#F7FF00"
-+LIGHT_YELLOW = "#b7ba10ff"
-+DARK_GREEN = "#006633"
+DARK_PURPLE = "#EF00FF"
+LIGHT_PURPLE = "#F557FF"
+BLACK = "#000000"
+GRAY = "#7D7D7D"
+YELLOW = "#F7FF00"
+LIGHT_YELLOW = "#b7ba10ff"
+DARK_GREEN = "#006633"
 
 colors = [[LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
           [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
@@ -197,10 +197,10 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
     ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped), np.add(y_mean_stepped, y_err_stepped),
                     color=LIGHT_BLUE,
                     label=f"{data_name} Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}",
-                    alpha=0.2)
+                    alpha=0.3)
     plt.plot(x_values_stepped, y_mean_stepped, color=DARK_BLUE, label=f"{data_name} Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='red', linestyle='dotted',
-                label=f"{data_name} Totaal gemiddelde: {int(overall_mean)}")
+    # plt.axhline(y=overall_mean, color='red', linestyle='dotted',
+    #             label=f"{data_name} Totaal gemiddelde: {int(overall_mean)}")
     # plt.text(plt.gca().get_xlim()[0]+0.5, overall_mean+0.1, str(round(overall_mean, 1)))
     # plt.yticks(list(plt.yticks()[0]) + [overall_mean])
 
@@ -220,14 +220,20 @@ def plot_mean_and_error(directory, baseline_directory, title, data_name="", step
                     label=f"(Baseline) Standaardafwijking: gemiddelde = {round(np.nanmean(y_err_stepped), 1)}",
                     alpha=0.4)
     plt.plot(x_values_stepped, y_mean_stepped, color=LIGHT_GREEN, label="(Baseline) Gemiddelde per episode")
-    plt.axhline(y=overall_mean, color='#ffff5c', linestyle='dotted',
-                label=f"(Baseline) Totaal gemiddelde: {int(overall_mean)}")
+    # plt.axhline(y=overall_mean, color='#ffff5c', linestyle='dotted',
+    #             label=f"(Baseline) Totaal gemiddelde: {int(overall_mean)}")
+
+    plt.axhline(y=30 // 10 * 7, color='red', linestyle='dotted', label=f"Optimale beloning")
 
     # Code to sort legend entries:
     handles, labels = plt.gca().get_legend_handles_labels()
     # sort both labels and handles by labels
     labels, handles = zip(*sorted(zip(labels, handles), key=lambda t: t[0]))
     legend = plt.legend(handles, labels, title="Legenda", loc="lower right", frameon=1)
+
+    # Show optimal area
+    # plt.fill_between([plt.gca().get_xlim()[0], plt.gca().get_xlim()[1]], [30 // 10 * 6, 30 // 10 * 7], color='#dddd5a',
+    #                  label='Zone optimale beloning', alpha=0.4)
 
     # Set legend background color
     # legend.get_frame().set_facecolor(PALE_BLUE)
@@ -289,13 +295,14 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 24})
 
     # Directory that contains data to be plotted
-    data_directory = "./TreasureMap-v0/states15"
-    baseline_directory = "./TreasureMap-v0/Baseline:StatesOnly75"
+    data_directory = "./TreasureMapHard-v0/30/states-bow1"
+    baseline_directory = "./TreasureMapHard-v0/30/states1"
     plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
                  + '\n' \
-                 + r'\#Observaties $= 6$ + Geschiedenis som'
+                 + r'\#Observaties $= 3$ + \#BoW $= 5$'
 
-    # plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
-    plot_one("./TreasureMap-v0/(500)epsgr20bow-19:16 01-05-2021.csv")
+    plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
+    # plot_all_with_err(data_directory, plot_title=plot_title, step=5)
+    # plot_one("./TreasureMap-v0/(500)epsgr20bow-19:16 01-05-2021.csv")
     # plot_all(data_directory)
     # plot_specific_graphs("./TreasureMap-v0/test")
