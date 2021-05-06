@@ -111,7 +111,7 @@ class ReplayMemory:
     # maak een mini batch die bestaat uit batch_size elementen (één element is hetgeen wat de get_state funtie returnt)
     def get_mini_batch(self, batch_size):
         ind_range = list(range(history_size, len(self.observations)-1))
-        # Steps to make semi-random batch, which slightly favors positive rewards
+        # Steps to make semi-act_random batch, which slightly favors positive rewards
         rew = self.rewards
         rew = list(itertools.islice(rew, history_size, len(self)-1))
         reward_at = list(zip(ind_range, rew))
@@ -159,7 +159,7 @@ class DQNAgent:
         self.model_t_update_counter = 0
         self.update_freq = 1
 
-        # Percentage of actions to be random
+        # Percentage of actions to be act_random
         self.epsilon = 1.0
         
         # As the agent is learning, decrease the epsilon factor to shift focus from exploration to exploitation
@@ -169,7 +169,7 @@ class DQNAgent:
         self.epsilon_min = 0.1
 
         # Parameters for model evaluation
-        self.epsilon_greedy = 0.05  # Use sometimes random actions in stead of the model output
+        self.epsilon_greedy = 0.05  # Use sometimes act_random actions in stead of the model output
         self.do_evaluate = True
         self.show_progressbar = False
         # This is the memory used in a test method
@@ -214,7 +214,7 @@ class DQNAgent:
         #self.memory.append([state, action, reward, next_state, done])
         self.memory.add_experience(state, action, reward, done)
 
-    # Choose an action based on the current state or a random action with probability epsilon
+    # Choose an action based on the current state or a act_random action with probability epsilon
     def act(self, state, test=False):
         epsilon = self.epsilon
         if test:
@@ -231,14 +231,14 @@ class DQNAgent:
         act_value = self.model.predict(state)         # exploitative action
         return np.argmax(act_value[0])
 
-    # Trains the model on batch_size experiences picked from self.memory at random
+    # Trains the model on batch_size experiences picked from self.memory at act_random
     def replay(self, batch_size):
         # Training is possible if memory has enough experiences
         if len(self.memory.observations) < batch_size+history_size: #len(self.memory) < batch_size:
             return
-        # Pick random minibatch from replay memory
+        # Pick act_random minibatch from replay memory
         # To train neural network and improve approximation of optimal policy
-        minibatch = self.memory.get_mini_batch(batch_size) #random.sample(self.memory, batch_size)
+        minibatch = self.memory.get_mini_batch(batch_size) #act_random.sample(self.memory, batch_size)
         # Train the model on each element in the minibatch
         for state, action, reward, next_state, done in minibatch:
             # Determine the target reward

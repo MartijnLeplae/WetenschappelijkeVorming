@@ -148,7 +148,7 @@ class CookieDomain(gym.Env):
     def _state(self):
         return np.concatenate((np.array(self.state), self.current_hist_rep))
 
-    # Function to get the new button location (can be random or a specific room)
+    # Function to get the new button location (can be act_random or a specific room)
     def _get_new_button_pos(self):
         return 1 #rnd.randint(1, self.n_rooms+1)
 
