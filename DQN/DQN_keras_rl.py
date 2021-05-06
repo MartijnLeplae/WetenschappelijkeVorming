@@ -24,8 +24,8 @@ import argparse
 
 
 class Trainer:
-    def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 500
+    def __init__(self, env=None, user_input=None, n_episodes=500):
+        self.N_EPISODES = n_episodes
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -122,7 +122,7 @@ class Trainer:
 
     def start(self, save=False):
         self.init_agent()
-        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=0)
+        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=1)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
         if save:
             self.save_model()
@@ -199,7 +199,7 @@ if __name__ == '__main__':
         trainer.plot(save=True)
         trainer.save_data()
     elif args.mode == "test":
-        filepath = "(500)States:3-231.h5"
+        filepath = "(500)epsgr:75States:3-121-11:19 29-04-2021.h5"
         if args.weights:
             filepath = args.weights
         path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
@@ -208,6 +208,7 @@ if __name__ == '__main__':
                 trainer.load_model(path)
             except OSError as e:
                 print(f'No weights found, got error: {e}')
+        #trainer.load_model(path)
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):

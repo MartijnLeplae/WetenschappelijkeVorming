@@ -14,32 +14,27 @@ def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=Fa
     print(f'[FINISHED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
 
 
-settings = [[True, False, False, False],
-            [True, False, True, False],
-            [False, False, True, False],
-            [False, False, True, True],
-            [False, False, False, True],
-            [True, True, False, False],
-            [False, True, False, True]]
+settings = [
+            [False, False, False, False]
+            # [True, False, False, False],
+            # [True, False, True, False],
+            # [False, False, True, False],
+            # [False, False, True, True],
+            # [False, False, False, True],
+            # [True, True, False, False],
+            # [False, True, False, True]
+            ]
 
 
 def main():
-    # jobs = []
-    # for i in range(5):
-    #     for setting in settings:
-    #         trainer = Trainer(env='ButtonsWorld-v0')
-    #         args = [trainer] + setting
-    #         jobs.append(multiprocessing.Process(target=do_experiment, args=args))
-    #     for job in jobs:
-    #         job.start()
-
     # Construct a list of lists which are the arguments for the experiments.
+    n_episodes = 500
     sequences = ['121', '121122', '121122212']
     all_args = []
     for seq in sequences:
-        for i in range(7):
+        for i in range(5):
             for setting in settings:
-                trainer = Trainer(env='ButtonsWorld-v0')
+                trainer = Trainer(env='ButtonsWorld-v0', n_episodes=n_episodes)
                 args = [trainer] + setting + [seq]
                 all_args.append(args)
 

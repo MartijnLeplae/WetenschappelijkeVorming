@@ -68,21 +68,21 @@ def plot_all_with_err(directory, step=10):
     data = os.listdir(directory)
     for index, dir in enumerate(data):
         y_values = read_data_to_array(f"{directory}/{dir}")
-        x_values = np.arange(0, max(map(len, y_values)), step)
+        x_values = np.arange(0, max(map(len, y_values)))
+        x_values_stepped = np.arange(0, max(map(len, y_values)), step)
         y_err = np.nanstd(y_values, axis=0)
         y_mean = np.nanmean(y_values, axis=0)
         y_err_stepped = y_err[::step]
         y_mean_stepped = y_mean[::step]
         # overall_mean = np.nanmean(y_mean)
-        x_new = np.linspace(x_values.min(), x_values.max(), 200)
-        spl1 = make_interp_spline(x_values, y_err_stepped)
-        spl2 = make_interp_spline(x_values, y_mean_stepped)
-        y_err_new = spl1(x_new)
-        y_mean_new = spl2(x_new)
-        # ax.fill_between(x_values, np.subtract(y_mean_stepped, y_err_stepped),
+        c = np.polyfit(x_values, y_mean, 4)
+        c = list(reversed(c))
+        # ax.fill_between(x_values_stepped, np.subtract(y_mean_stepped, y_err_stepped),
         #                 np.add(y_mean_stepped, y_err_stepped),
         #                 color=colors[index][0], alpha=0.2) #label="Standaardafwijking"
-        plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}")
+        plt.plot(x_values_stepped, y_mean_stepped, color=colors[index][1], label=f"{dir}")
+        # plt.plot(x_values, np.array([np.sum(np.array([c[i] * (j ** i) for i in range(len(c))])) for j in x_values]),
+        #          color=colors[index][1])
     plt.legend(title="Legenda", loc="lower right")
     plt.show()
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/SequenceLength/3/75"
+    data_directory = "./ButtonsWorld-v0/Repetition/"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \
