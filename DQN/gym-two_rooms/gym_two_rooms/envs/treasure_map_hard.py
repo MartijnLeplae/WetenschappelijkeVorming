@@ -26,7 +26,7 @@ EFFICIENTLY_SOLD_TREASURE = 6
 INEFFICIENTLY_SOLD_TREASURE = 4
 
 # History length
-NB_PREV_STATES = 1  # 3
+NB_PREV_STATES = 3
 # Number of steps per episode
 EPISODE_LENGTH = 30  # 30  # 75
 
