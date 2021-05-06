@@ -376,7 +376,7 @@ class TreasureMapEnv(gym.Env):
         pass
 
     def get_name(self):
-        time = datetime.now().strftime('%H:%M %d-%m-%Y')
+        time = datetime.now().strftime('%H:%M:%S:%f %d-%m-%Y')
         if self.use_in_place_repr:
             return f'BASELINE_BOW_INPLACE' \
                    + f'EpsLen:{self.episode_length}-' \
