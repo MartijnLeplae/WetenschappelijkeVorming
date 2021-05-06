@@ -32,7 +32,7 @@ def main():
     sequences = ['121', '121122', '121122212']
     all_args = []
     for seq in sequences:
-        for i in range(5):
+        for i in range(10):
             for setting in settings:
                 trainer = Trainer(env='ButtonsWorld-v0', n_episodes=n_episodes)
                 args = [trainer] + setting + [seq]

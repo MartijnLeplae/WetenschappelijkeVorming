@@ -122,7 +122,7 @@ class Trainer:
 
     def start(self, save=False):
         self.init_agent()
-        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=1)
+        out = self.dqn.fit(self.env, nb_steps=self.total_nb_steps, visualize=False, verbose=0)
         self.episode_reward = out.history['episode_reward'][self.warmup_episodes:]
         if save:
             self.save_model()
