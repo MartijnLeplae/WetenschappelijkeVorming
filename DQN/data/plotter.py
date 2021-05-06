@@ -22,10 +22,17 @@ GRAY = "#7D7D7D"
 YELLOW = "#F7FF00"
 LIGHT_YELLOW = "#b7ba10ff"
 DARK_GREEN = "#006633"
+TURQUOISE = "#00FFFF"
+DARK_TURQUOISE = "#00bcbc"
 
-colors = [[LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
-          [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
-          [GRAY, BLACK], [LIGHT_YELLOW, LIGHT_YELLOW], [DARK_GREEN, DARK_GREEN]]
+RED = "#FF00FF"
+
+colors = [
+    [LIGHT_BLUE, DARK_BLUE], [LIGHT_GREEN, LIGHT_GREEN],
+    [LIGHT_PINK, DARK_PINK], [LIGHT_PURPLE, DARK_PURPLE],
+    [GRAY, BLACK], [LIGHT_YELLOW, LIGHT_YELLOW],
+    [DARK_GREEN, DARK_GREEN], [TURQUOISE, DARK_TURQUOISE]
+]
 
 
 def read_data_to_array(directory, step=1):
@@ -57,6 +64,7 @@ def plot_all(directory, step=5):
         ys_stepped = [ys[i] for i in range(0, len(ys), step)]
         # x_values = np.arange(0, len(ys), step)
         plt.plot(x_values, ys_stepped, label=data[index].replace('_', '-'))
+        break
     plt.legend(title="Legenda", loc="lower right")
     plt.show()
 
@@ -170,7 +178,7 @@ def plot_all_in_place_combinations300():
     plt.show()
 
 
-def plot_mean_and_error(directory, baseline_directory, title, data_name="", step=5):
+def plot_mean_and_error(directory, baseline_directory, title,third_dir=None, data_name="", step=5):
     y_values = read_data_to_array(directory=directory)
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -262,7 +270,7 @@ def plot_all_with_err(directory, plot_title="Plot", step=10):
         # ax.fill_between(x_values, np.subtract(y_mean_stepped, y_err_stepped),
         #                 np.add(y_mean_stepped, y_err_stepped),
         #                 color=colors[index][0], alpha=0.2) #label="Standaardafwijking"
-        plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}")
+        plt.plot(x_values, y_mean_stepped, color=colors[index][1], label=f"{dir}", linewidth=2)
     plt.legend(title="Legenda", loc="lower right")
     plt.title(plot_title)
     plt.xlabel("Aantal episdes")
@@ -295,14 +303,16 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 24})
 
     # Directory that contains data to be plotted
-    data_directory = "./TreasureMapHard-v0/30/interval-bow1"
+    data_directory = "./TreasureMapHard-v0/states-Obs1"
     baseline_directory = "./TreasureMapHard-v0/30/states1"
-    plot_title = r'Trainen m.b.v. Interval en \textit{vast} geheugen $(N = 10)$:' \
+    third_directory = "./TreasureMapHard-v0/30/bow1"
+    plot_title = r"Trainen m.b.v. observatie-geheugen \textit{uitgebreid} met `meest gebruikte' $(N = 10)$:" \
                  + '\n' \
-                 + r'\#Observaties $= 3$, Stapgrootte $= 2$'
+                 + r'\#Observaties = 3 + Meest gebruikte element'
+    # plot_title = data_directory[-2:]
 
-    plot_mean_and_error(data_directory, baseline_directory, plot_title, step=5)
+    plot_mean_and_error(data_directory, baseline_directory,  plot_title, step=5)
     # plot_all_with_err(data_directory, plot_title=plot_title, step=5)
     # plot_one("./TreasureMap-v0/(500)epsgr20bow-19:16 01-05-2021.csv")
-    # plot_all(data_directory)
+    # plot_all(data_directory, step=10)
     # plot_specific_graphs("./TreasureMap-v0/test")

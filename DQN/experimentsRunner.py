@@ -7,7 +7,7 @@ Parameters = {
     'interval-bow40':    [False, True, False, True, False],   # interval-bow
     'states40':          [True, False, False, False, False],  # states
     'states-bow40':      [True, True, False, False, False],   # states-bow
-    'states-hist_sum40': [True, False, False, False, True]    # hist_sum
+    'states-histSum40': [True, False, False, False, True]    # hist_sum
 }
 # CODE = '121'  # '121122212'  # '121122'  #   #
 
