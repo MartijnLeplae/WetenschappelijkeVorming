@@ -100,7 +100,7 @@ if __name__ == '__main__':
     matplotlib.rcParams.update({'font.size': 35})
 
     # Directory that contains data to be plotted
-    data_directory = "./ButtonsWorld-v0/SequenceLength/6/75"
+    data_directory = "./ButtonsWorld-v0/SequenceLength/3/"
     baseline_directory = "./ButtonsWorld-v0/SequenceLength/3"
     # plot_title = r'Trainen m.b.v. \textit{uitgebreid} geheugen $(N = 10)$:' \
     #              + '\n' \
