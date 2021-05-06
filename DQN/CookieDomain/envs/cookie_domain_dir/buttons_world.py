@@ -15,7 +15,7 @@ BLUE_ISH = (105, 103, 253)
 BLACK = (0, 0, 0)
 # LOCATION VARIABLES (x-position of the elements)
 BARRY_START = 0
-BUTTONS = [100, 200, 300] # [100, 200, 300, 400, 500, 600]  # [100, 200, 300]  # [100, 200]  #
+BUTTONS = [100, 200] # [100, 200, 300, 400, 500, 600]  # [100, 200, 300]  # [100, 200]  #
 # OTHER VARS
 STEP_SIZE = 50 # 25 # 10 # How big are the steps of Barry?
 # DIMENSION VARIABLES
@@ -78,6 +78,7 @@ class ButtonsWorld(gym.Env):
         self.score = 0  # keeps track of full code completions
 
         self.actions = ['left', 'right', 'press']
+        self.act_random = False
 
         self.nb_prev_states = NB_PREV_STATES
         self.n_states = N_STATES
@@ -121,6 +122,8 @@ class ButtonsWorld(gym.Env):
         self.construct_repr_length()
 
     def step(self, action):
+        if self.act_random:
+            action = self.action_space.sample()
         self.has_pressed = False
         if len(self.state) >= len(self.code):
             self.state = []
