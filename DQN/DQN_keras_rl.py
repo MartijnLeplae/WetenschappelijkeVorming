@@ -19,13 +19,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
 matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+import argparse
 
 
-# This code is based on
-# https://github.com/GavinRens/LearningMealyRewardMachines/blob/master/src/DQN_baseline/Q_learning_kerasrl.py
 class Trainer:
-    def __init__(self, env=None, user_input=None):
-        self.N_EPISODES = 500
+    def __init__(self, env=None, user_input=None, n_episodes=500, seed=0):
+        self.N_EPISODES = n_episodes
         # self.STEPS_PER_EPISODE = 3
         self.BATCH_SIZE = 32
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -60,8 +60,8 @@ class Trainer:
 
         # self.env.episode_length = self.STEPS_PER_EPISODE
 
-        np.random.seed(123)
-        self.env.seed(123)
+        np.random.seed(seed)
+        self.env.seed(seed)
 
         self.nb_actions = self.env.action_space.n
         if type(self.env.observation_space) == int:
@@ -85,19 +85,26 @@ class Trainer:
 
         self.total_nb_steps = (self.N_EPISODES + self.warmup_episodes) * self.env.episode_length
 
+    def get_name(self):
+        return f"({self.N_EPISODES}){self.env.get_name()}"
+
     def init_agent(self):
         model = self._build_model()
         memory = SequentialMemory(limit=int(self.total_nb_steps * 0.7), window_length=self.window_length)
         policy = EpsGreedyQPolicy(eps=0.2)  # <- When not a lot of exploration is needed (better choice for our envs)
         # policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), attr='eps', value_max=.5, value_min=.1, value_test=0.1,
         #                               nb_steps=self.total_nb_steps)
-        test_policy = EpsGreedyQPolicy(eps=0.1)  # do some random actions even when testing
+        test_policy = EpsGreedyQPolicy(eps=0.1)  # do some act_random actions even when testing
         self.dqn = DQNAgent(model=model, batch_size=self.BATCH_SIZE, enable_double_dqn=True, nb_actions=self.nb_actions,
                             memory=memory, nb_steps_warmup=self.warmup_episodes * self.env.episode_length,
                             target_model_update=1e-2, policy=policy, test_policy=test_policy)
         self.dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
     def _build_model(self):
+        if type(self.env.observation_space) == int:
+            self.state_size = (self.env.observation_space,)  # (self.env.observation_space.n,)  #
+        else:
+            self.state_size = (self.env.observation_space.n,)
         model = Sequential()
         # Input Layer
         model.add(Flatten(input_shape=(1,) + self.state_size))
@@ -133,7 +140,7 @@ class Trainer:
 
     def save_model(self):
         dir = f'models/{self.ENV}/'
-        path = f'{dir}{self.name}.h5'
+        path = f'{dir}{self.get_name()}.h5'
         try:
             self.dqn.save_weights(path, overwrite=True)
         except OSError:
@@ -141,11 +148,7 @@ class Trainer:
             cur_dir = os.getcwd()
             new_dir = os.path.join(cur_dir, 'models', self.ENV)
             os.mkdir(new_dir)
-            try:
-                self.dqn.save_weights(path, overwrite=True)
-            except OSError:
-                print("Failed, saving in current directory...")
-                self.dqn.save_weights("./" + self.name + ".h5")
+            self.dqn.save_weights(path, overwrite=True)
 
     def load_model(self, path):
         self.init_agent()
@@ -205,19 +208,17 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(dir_path)
-    assert os.getcwd().endswith("WetenschappelijkeVorming/DQN"), \
-        "Switch to the WetenschappelijkeVorming/DQN directory first to ensure proper saving functionality."
 
     if args.environment:
         trainer = Trainer(args.environment)
     else:
         trainer = Trainer()
     if args.mode == "train":
-        trainer.start(save=False)
+        trainer.start(save=True)
         trainer.plot(save=True)
-        # trainer.save_data()
+        trainer.save_data()
     elif args.mode == "test":
-        filepath = "(500)States:3-231.h5"
+        filepath = "(500)epsgr:75States:3-121-11:19 29-04-2021.h5"
         if args.weights:
             filepath = args.weights
         path = f'{dir_path}/models/{trainer.ENV}/{filepath}'
@@ -226,7 +227,8 @@ if __name__ == '__main__':
                 trainer.load_model(path)
             except OSError as e:
                 print(f'No weights found, got error: {e}')
+        #trainer.load_model(path)
         trainer.test()
 
         # Example usage (when in ./WetenschappelijkeVorming/DQN directory):
-        # python3 DQN_keras_rl.py -e BarryWorld-v0 -m test -w '(500)States:3-231.h5'
+        # python3 DQN_keras_rl.py -e ButtonsWorld-v0 -m test -w '(500)States:3-231.h5'
