@@ -21,18 +21,16 @@ settings = [
             [False, False, True, False],
             [False, False, True, True],
             [False, False, False, True],
-            [True, True, False, False],
-            [False, True, False, True]
             ]
 
 
 def main():
     # Construct a list of lists which are the arguments for the experiments.
     n_episodes = 500
-    sequences = ['121', '121122', '121122212']
+    sequences = ['1232|32', '12|33|11|23']  # '121', '121122','121122212'
     # act_random = True
     all_args = []
-    n_runs = 10
+    n_runs = 5
     for seq in sequences:
         for setting in settings:
             for i in range(n_runs):
@@ -42,7 +40,7 @@ def main():
 
     # Execute all the experiments using the Pool() to distribute the processes over all the available cores. You can
     # also specify a max number of cores to be used if you specify this in the Pool() object as such-> e.g.: Pool(5)
-    with multiprocessing.Pool(4) as p:
+    with multiprocessing.Pool() as p:
         p.starmap(do_experiment, all_args)
 
 
