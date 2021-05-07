@@ -9,7 +9,7 @@ def do_experiment(buttons_trainer: Trainer, state=False, most_used=False, bow=Fa
     print(f'[STARTED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
     buttons_trainer.env.set_user_parameters(n_states=state, bow=bow, most_used=most_used,
                                             interval=interval, nb_prev_states=n_prev, act_random=act_random)
-    buttons_trainer.start(save=True)
+    buttons_trainer.start(save=False)
     buttons_trainer.save_data()
     print(f'[FINISHED: State:{state}, BOW:{bow}, Most-Used:{most_used}, Interval:{interval}]')
 
@@ -42,6 +42,8 @@ def main():
     # also specify a max number of cores to be used if you specify this in the Pool() object as such-> e.g.: Pool(5)
     with multiprocessing.Pool() as p:
         p.starmap(do_experiment, all_args)
+        p.close()
+        p.join()
 
 
 if __name__ == "__main__":
