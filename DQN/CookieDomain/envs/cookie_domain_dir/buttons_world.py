@@ -86,7 +86,7 @@ class ButtonsWorld(gym.Env):
         self.bow = BOW
         self.interval = INTERVAL
 
-        self.repr_length = len(BUTTONS)
+        self.repr_length = len(self.buttons)
         self.construct_repr_length()
 
         self.action_space = spaces.Discrete(len(self.actions))
@@ -97,11 +97,11 @@ class ButtonsWorld(gym.Env):
         self.episode_length = EPISODE_LENGTH
 
     def construct_repr_length(self):
-        self.repr_length = len(BUTTONS)
+        self.repr_length = len(self.buttons)
         if self.n_states:
             self.repr_length += self.nb_prev_states
         if self.bow:
-            self.repr_length += len(BUTTONS)
+            self.repr_length += len(self.buttons)
         if self.most_used:
             self.repr_length += 1
         if self.interval:
@@ -185,7 +185,7 @@ class ButtonsWorld(gym.Env):
     def _get_state_repr(self):
         def get_bow():
             count = []
-            for i in range(1, len(BUTTONS)+1):
+            for i in range(1, len(self.buttons)+1):
                 count.append(self.state.count(i))
             return np.array(count)
 
